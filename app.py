@@ -29,6 +29,11 @@ PRECIOS = {
     }
 }
 
+@app.context_processor
+def inject_localidades():
+    localidades = list(PRECIOS.keys())
+    return dict(localidades=localidades)
+
 @app.route('/', methods=['GET', 'POST'])
 def inicio():
     if request.method == 'POST':
@@ -48,8 +53,7 @@ def localidad():
         else:
             return redirect(url_for('cantidad_bultos'))
     
-    localidades = list(PRECIOS.keys())
-    return render_template('index.html', localidades=localidades)
+    return render_template('index.html')
 
 @app.route('/pallet', methods=['GET', 'POST'])
 def pallet():
@@ -85,33 +89,38 @@ def valor_declarado():
         return redirect(url_for('resultado'))
     return render_template('index.html')
 
-@app.route('/resultado', methods=['GET', 'POST'])
+@app.route('/resultado')
 def resultado():
-    if request.method == 'POST':
-        localidad = request.form['localidad']
-        tipo_envio = request.form['tipo_envio']
-        valor_declarado = float(request.form['valor'])
-        cantidad_bultos = int(request.form['cantidad'])
-        categorias = request.form.getlist('categorias')
-        
-        if tipo_envio == 'pallet':
-            tipo_pallet = request.form.get('fragil', 'no') == 'si'
-            precio = PRECIOS[localidad]["Pallet (frágil)" if tipo_pallet else "Pallet (no frágil)"]
-            total_base = precio
-        else:
-            total_base = 0
-            for categoria in categorias:
-                precio = PRECIOS[localidad].get(categoria, 0)
-                total_base += precio
-        
-        seguro = valor_declarado * 0.009
-        subtotal = total_base + seguro
-        iva = subtotal * 0.21
-        total = subtotal + iva
-
-        return render_template('index.html', total=total, valor_declarado=valor_declarado, seguro=seguro, iva=iva)
+    # Calcular precios
+    localidad = session['localidad']
+    valor_declarado = session['valor_declarado']
     
-    return redirect(url_for('inicio'))
+    if session['tipo_envio'] == 'pallet':
+        tipo_pallet = "Pallet (frágil)" if session['fragil'] else "Pallet (no frágil)"
+        precio = PRECIOS[localidad][tipo_pallet]
+        if session['pesado']:
+            precio *= 1.15
+        total_base = precio
+    else:
+        total_base = 0
+        for i, categoria in enumerate(session['categorias']):
+            precio = PRECIOS[localidad][categoria]
+            if categoria != "Donación" and session['pesado'][i]:
+                precio *= 1.15
+            total_base += precio
+    
+    seguro = valor_declarado * 0.009
+    subtotal = total_base + seguro
+    iva = subtotal * 0.21
+    total = subtotal + iva
+    
+    return render_template('index.html',
+        total_base=total_base,
+        seguro=seguro,
+        iva=iva,
+        total=total,
+        valor_declarado=valor_declarado
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)
