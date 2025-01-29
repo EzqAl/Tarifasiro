@@ -1,4 +1,3 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -39,7 +38,7 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             padding: 2rem;
             margin-bottom: 2rem;
-            display: {% raw %}{% if step == 'resultado' %}block{% else %}none{% endif %};{% end raw %}
+            display: {% if step == 'resultado' %}block{% else %}none{% endif %};
         }
 
         .active {
@@ -128,7 +127,7 @@
 <body>
     <div class="container">
         <!-- Paso 1: Tipo de envío -->
-        <div class="card {% raw %}{% if step == 'inicio' %}active{% endif %}{% end raw %}">
+        <div class="card {% if step == 'inicio' %}active{% endif %}">
             <h1>Cotizador de Envíos</h1>
             <div class="warning">
                 ⚠️ Este presupuesto es aproximado. Para confirmar contactar al WhatsApp: +54 9 11 5020-8451
@@ -146,9 +145,9 @@
         </div>
 
         <!-- Paso 2: Selección de Localidad -->
-        <div class="card {% raw %}{% if step == 'localidad' %}active{% endif %}{% end raw %}">
+        <div class="card {% if step == 'localidad' %}active{% endif %}">
             <h2>Selección de Destino</h2>
-            <form method="POST" action="/localidad">
+            <form method="POST" action="/handle_steps">
                 <div class="form-group">
                     <label>Localidad de destino:</label>
                     <select name="localidad" required>
@@ -162,9 +161,9 @@
         </div>
 
         <!-- Paso 3: Detalles del Pallet -->
-        <div class="card {% raw %}{% if step == 'pallet' %}active{% endif %}{% end raw %}">
+        <div class="card {% if step == 'pallet' %}active{% endif %}">
             <h2>Detalles del Pallet</h2>
-            <form method="POST" action="/pallet">
+            <form method="POST" action="/handle_steps">
                 <div class="grid">
                     <div class="form-group">
                         <label>¿Es frágil?</label>
@@ -186,14 +185,14 @@
         </div>
 
         <!-- Paso 4: Cantidad de Bultos -->
-        <div class="card {% raw %}{% if step == 'cantidad_bultos' %}active{% endif %}{% end raw %}">
+        <div class="card {% if step == 'cantidad_bultos' %}active{% endif %}">
             <h2>Cantidad de Bultos</h2>
             {% if cantidad_bultos > 10 %}
             <div class="warning">
                 ⚠️ Para más de 10 bultos, recomendamos cotizar por m³ (Contactar administración)
             </div>
             {% endif %}
-            <form method="POST" action="/cantidad_bultos">
+            <form method="POST" action="/handle_steps">
                 <div class="form-group">
                     <label>Cantidad de bultos:</label>
                     <input type="number" name="cantidad" min="1" required>
@@ -203,9 +202,9 @@
         </div>
 
         <!-- Paso 5: Selección de Categorías -->
-        <div class="card {% raw %}{% if step == 'seleccion_categorias' %}active{% endif %}{% end raw %}">
+        <div class="card {% if step == 'seleccion_categorias' %}active{% endif %}">
             <h2>Clasificación de Bultos</h2>
-            <form method="POST" action="/seleccion_categorias">
+            <form method="POST" action="/handle_steps">
                 <div class="grid">
                     {% for i in range(cantidad_bultos) %}
                     <div class="form-group">
@@ -227,12 +226,12 @@
         </div>
 
         <!-- Paso 6: Valor Declarado -->
-        <div class="card {% raw %}{% if step == 'valor_declarado' %}active{% endif %}{% end raw %}">
+        <div class="card {% if step == 'valor_declarado' %}active{% endif %}">
             <h2>Valor Declarado</h2>
             <div class="warning">
                 ⚠️ Si el valor declarado no coincide con la mercadería, se recalculará el precio
             </div>
-            <form method="POST" action="/valor_declarado">
+            <form method="POST" action="/handle_steps">
                 <div class="form-group">
                     <label>Valor total declarado (USD):</label>
                     <input type="number" step="0.01" name="valor" required>
@@ -242,7 +241,7 @@
         </div>
 
         <!-- Paso 7: Resultados -->
-        <div class="card {% raw %}{% if step == 'resultado' %}active{% endif %}{% end raw %}">
+        <div class="card {% if step == 'resultado' %}active{% endif %}">
             <div class="resultado">
                 <h2>Presupuesto Estimado</h2>
                 <div class="warning">
