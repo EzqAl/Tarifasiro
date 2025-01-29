@@ -48,58 +48,32 @@
             font-weight: bold;
         }
     </style>
-    <script>
-        function calcularEnvio(event) {
-            event.preventDefault();
-            let formData = new FormData(document.getElementById("envioForm"));
-            fetch("/resultado", {
-                method: "POST",
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("resultado").innerHTML = `Total a pagar: $${data.total}`;
-            });
-        }
-    </script>
 </head>
 <body>
     <div class="container">
         <h1>Calculador de Envíos</h1>
-        <form id="envioForm" onsubmit="calcularEnvio(event)">
+        <form id="envioForm" method="POST">
             <label for="tipo_envio">Tipo de envío:</label>
             <select name="tipo_envio" id="tipo_envio">
                 <option value="bulto">Bulto</option>
                 <option value="pallet">Pallet</option>
             </select>
             
+            {% if session.tipo_envio %}
             <label for="localidad">Localidad:</label>
             <select name="localidad" id="localidad">
                 {% for localidad in localidades %}
                     <option value="{{ localidad }}">{{ localidad }}</option>
                 {% endfor %}
             </select>
+            {% endif %}
             
-            <label for="cantidad">Cantidad de bultos:</label>
-            <input type="number" name="cantidad" id="cantidad" min="1" value="1">
-            
-            <label for="categorias">Categorías:</label>
-            <select name="categorias" id="categorias" multiple>
-                <option value="Chica">Chica</option>
-                <option value="Mediana">Mediana</option>
-                <option value="Grande">Grande</option>
-                <option value="XL">XL</option>
-                <option value="XXL">XXL</option>
-                <option value="M3">M3</option>
-                <option value="Donación">Donación</option>
-            </select>
-            
-            <label for="valor">Valor declarado:</label>
-            <input type="number" name="valor" id="valor" min="0" step="100">
-            
-            <button type="submit">Calcular</button>
+            <button type="submit">Siguiente</button>
         </form>
-        <p id="resultado"></p>
+        
+        {% if session.localidad %}
+        <p>Localidad seleccionada: {{ session.localidad }}</p>
+        {% endif %}
     </div>
 </body>
 </html>
