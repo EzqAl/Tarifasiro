@@ -3,125 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Fletes Profesional</title>
+    <title>Calculadora de Envíos</title>
     <style>
-      
+        /* Reset de margenes */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Estilos generales */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        /* Menús desplegables */
+        select, input[type="text"], input[type="number"], input[type="submit"] {
+            margin: 10px 0;
+            padding: 8px;
+            font-size: 1rem;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        /* Estilos del formulario */
+        .form-container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        /* Resultados */
+        .result-container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            margin-top: 20px;
+        }
+
+        /* Responsividad */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .form-container, .result-container {
+                width: 100%;
+                padding: 15px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Calculadora de Costos de Flete</h1>
-        
-        <!-- Formulario Principal -->
-        <div class="form-section">
-            {% if not session.tipo_envio %}
-            <form method="POST">
-                <div class="form-group">
-                    <label for="tipo_envio">Tipo de Envío:</label>
-                    <select name="tipo_envio" id="tipo_envio" required>
-                        <option value="">Seleccione tipo...</option>
-                        <option value="normal">Envío Normal</option>
-                        <option value="pallet">Pallet</option>
-                    </select>
-                </div>
-                <button type="submit">Continuar</button>
-            </form>
-            {% endif %}
-            
-            {% if session.tipo_envio and not session.localidad %}
-            <form method="POST">
-                <div class="form-group">
-                    <label for="localidad">Seleccione Localidad:</label>
-                    <select name="localidad" id="localidad" required>
-                        {% for localidad in localidades %}
-                        <option value="{{ localidad }}">{{ localidad }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <button type="submit">Siguiente</button>
-            </form>
-            {% endif %}
-            
-            {% if session.tipo_envio == 'pallet' and session.localidad and not session.fragil %}
-            <form method="POST">
-                <div class="form-group">
-                    <label>¿Es frágil el pallet?</label>
-                    <select name="fragil" required>
-                        <option value="si">Sí</option>
-                        <option value="no">No</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>¿Es pesado? (+15%)</label>
-                    <select name="pesado" required>
-                        <option value="si">Sí</option>
-                        <option value="no">No</option>
-                    </select>
-                </div>
-                <button type="submit">Continuar</button>
-            </form>
-            {% endif %}
-            
-            {% if session.tipo_envio == 'normal' and session.localidad and not session.cantidad_bultos %}
-            <form method="POST">
-                <div class="form-group">
-                    <label>Cantidad de Bultos:</label>
-                    <input type="number" name="cantidad" min="1" required>
-                </div>
-                <button type="submit">Siguiente</button>
-            </form>
-            {% endif %}
-            
-            {% if session.cantidad_bultos and not session.categorias %}
-            <form method="POST">
-                {% for i in range(session.cantidad_bultos) %}
-                <div class="form-group">
-                    <label>Bulto {{ i+1 }}:</label>
-                    <select name="categoria" required>
-                        {% for categoria in PRECIOS[session.localidad].keys() %}
-                        <option value="{{ categoria }}">{{ categoria }}</option>
-                        {% endfor %}
-                    </select>
-                    <label>
-                        <input type="checkbox" name="pesado" value="{{ i }}"> Pesado (+15%)
-                    </label>
-                </div>
-                {% endfor %}
-                <button type="submit">Calcular</button>
-            </form>
-            {% endif %}
-            
-            {% if not session.valor_declarado and (session.fragil is defined or session.categorias is defined) %}
-            <form method="POST">
-                <div class="form-group">
-                    <label>Valor Declarado:</label>
-                    <input type="number" step="0.01" name="valor" required>
-                </div>
-                <button type="submit">Calcular Total</button>
-            </form>
-            {% endif %}
-        </div>
 
-        {% if total %}
-        <div class="resultados">
-            <h2>Resultado del Cálculo</h2>
-            <div class="result-item">
-                <span>Total Base:</span>
-                <span>${{ total_base }}</span>
-            </div>
-            <div class="result-item">
-                <span>Seguro (0.9%):</span>
-                <span>${{ seguro }}</span>
-            </div>
-            <div class="result-item">
-                <span>IVA (21%):</span>
-                <span>${{ iva }}</span>
-            </div>
-            <div class="result-item" style="font-size: 1.2em; color: #27ae60;">
-                <span>Total Final:</span>
-                <span>${{ total }}</span>
-            </div>
-        </div>
-        {% endif %}
+    <h1>Calculadora de Envíos</h1>
+
+    <div class="form-container">
+        <form method="POST" action="{{ url_for('inicio') }}">
+            <label for="tipo_envio">Tipo de Envío</label>
+            <select name="tipo_envio" id="tipo_envio">
+                <option value="pallet">Pallet</option>
+                <option value="bultos">Bultos</option>
+            </select>
+
+            <label for="localidad">Localidad</label>
+            <select name="localidad" id="localidad">
+                {% for localidad in localidades %}
+                    <option value="{{ localidad }}">{{ localidad }}</option>
+                {% endfor %}
+            </select>
+
+            <input type="submit" value="Siguiente">
+        </form>
     </div>
+
+    {% if total_base %}
+    <div class="result-container">
+        <h2>Resultado</h2>
+        <p><strong>Total Base:</strong> ${{ total_base }}</p>
+        <p><strong>Seguro:</strong> ${{ seguro }}</p>
+        <p><strong>IVA (21%):</strong> ${{ iva }}</p>
+        <p><strong>Total:</strong> ${{ total }}</p>
+    </div>
+    {% endif %}
+
 </body>
 </html>
