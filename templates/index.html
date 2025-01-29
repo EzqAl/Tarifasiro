@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Envíos</title>
     <style>
-        /* Reset de margenes */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        /* Estilos generales */
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
@@ -28,8 +26,7 @@
             font-size: 2rem;
         }
 
-        /* Menús desplegables */
-        select, input[type="number"], input[type="submit"] {
+        select, input[type="number"], input[type="text"], input[type="submit"] {
             margin: 10px 0;
             padding: 8px;
             font-size: 1rem;
@@ -37,7 +34,6 @@
             max-width: 300px;
         }
 
-        /* Estilos del formulario */
         .form-container {
             background-color: #fff;
             border-radius: 8px;
@@ -47,7 +43,6 @@
             max-width: 600px;
         }
 
-        /* Resultados */
         .result-container {
             background-color: #fff;
             border-radius: 8px;
@@ -58,7 +53,6 @@
             margin-top: 20px;
         }
 
-        /* Responsividad */
         @media (max-width: 600px) {
             body {
                 padding: 10px;
@@ -73,38 +67,102 @@
 </head>
 <body>
 
-    <h1>Calculadora de Envíos</h1>
+<h1>Calculadora de Envíos</h1>
 
-    <!-- Formulario para Tipo de Envío y Localidad -->
-    <div class="form-container">
-        <form method="POST" action="{{ url_for('localidad') }}">
-            <label for="tipo_envio">Tipo de Envío</label>
-            <select name="tipo_envio" id="tipo_envio">
-                <option value="pallet">Pallet</option>
-                <option value="bultos">Bultos</option>
-            </select>
+<!-- Formulario para Tipo de Envío y Localidad -->
+<div class="form-container">
+    <form method="POST" action="{{ url_for('inicio') }}">
+        <label for="tipo_envio">Tipo de Envío</label>
+        <select name="tipo_envio" id="tipo_envio">
+            <option value="pallet">Pallet</option>
+            <option value="bultos">Bultos</option>
+        </select>
 
-            <label for="localidad">Localidad</label>
-            <select name="localidad" id="localidad">
-                {% for localidad in localidades %}
-                    <option value="{{ localidad }}">{{ localidad }}</option>
-                {% endfor %}
-            </select>
+        <label for="localidad">Localidad</label>
+        <select name="localidad" id="localidad">
+            {% for localidad in localidades %}
+                <option value="{{ localidad }}">{{ localidad }}</option>
+            {% endfor %}
+        </select>
 
-            <input type="submit" value="Siguiente">
-        </form>
-    </div>
+        <div id="formulario_adicional"></div> <!-- Aquí se agregará el formulario dinámicamente -->
 
-    {% if total_base %}
-    <!-- Resultados -->
-    <div class="result-container">
-        <h2>Resultado</h2>
-        <p><strong>Total Base:</strong> ${{ total_base }}</p>
-        <p><strong>Seguro:</strong> ${{ seguro }}</p>
-        <p><strong>IVA (21%):</strong> ${{ iva }}</p>
-        <p><strong>Total:</strong> ${{ total }}</p>
-    </div>
-    {% endif %}
+        <input type="submit" value="Calcular">
+    </form>
+</div>
+
+{% if total_base %}
+<!-- Resultados -->
+<div class="result-container">
+    <h2>Resultado</h2>
+    <p><strong>Total Base:</strong> ${{ total_base }}</p>
+    <p><strong>Seguro:</strong> ${{ seguro }}</p>
+    <p><strong>IVA (21%):</strong> ${{ iva }}</p>
+    <p><strong>Total:</strong> ${{ total }}</p>
+</div>
+{% endif %}
+
+<script>
+    // Script para manejar el formulario dinámico según el tipo de envío
+    document.getElementById("tipo_envio").addEventListener("change", function() {
+        const tipoEnvio = this.value;
+        const formularioAdicional = document.getElementById("formulario_adicional");
+        
+        formularioAdicional.innerHTML = ""; // Limpiar el formulario adicional previo
+
+        if (tipoEnvio === "pallet") {
+            formularioAdicional.innerHTML = `
+                <label for="fragil">¿Frágil?</label>
+                <select name="fragil" id="fragil">
+                    <option value="si">Sí</option>
+                    <option value="no">No</option>
+                </select>
+                <label for="pesado">¿Pesado?</label>
+                <select name="pesado" id="pesado">
+                    <option value="si">Sí</option>
+                    <option value="no">No</option>
+                </select>
+            `;
+        } else if (tipoEnvio === "bultos") {
+            formularioAdicional.innerHTML = `
+                <label for="cantidad">Cantidad de Bultos</label>
+                <input type="number" name="cantidad" id="cantidad" min="1">
+                <div id="categorias"></div> <!-- Aquí se agregarán las categorías dinámicamente -->
+            `;
+        }
+    });
+
+    // Script para mostrar categorías según cantidad de bultos
+    document.getElementById("cantidad")?.addEventListener("input", function() {
+        const cantidad = this.value;
+        const categoriasDiv = document.getElementById("categorias");
+        
+        categoriasDiv.innerHTML = ""; // Limpiar categorías previas
+
+        for (let i = 0; i < cantidad; i++) {
+            categoriasDiv.innerHTML += `
+                <label for="categoria${i}">Categoría Bulto ${i + 1}</label>
+                <select name="categoria" id="categoria${i}">
+                    <option value="Chica">Chica</option>
+                    <option value="Mediana">Mediana</option>
+                    <option value="Grande">Grande</option>
+                    <option value="XL">XL</option>
+                    <option value="XXL">XXL</option>
+                    <option value="M3">M3</option>
+                    <option value="Donación">Donación</option>
+                </select>
+                <label for="pesado${i}">¿Pesado?</label>
+                <select name="pesado" id="pesado${i}">
+                    <option value="si">Sí</option>
+                    <option value="no">No</option>
+                </select>
+            `;
+        }
+    });
+
+    // Activar el cambio inicial en el tipo de envío para mostrar el formulario dinámico desde el principio
+    document.getElementById("tipo_envio").dispatchEvent(new Event("change"));
+</script>
 
 </body>
 </html>
