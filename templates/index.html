@@ -5,74 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculador de Envíos</title>
     <link rel="stylesheet" href="/static/styles.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            width: 100%;
-            max-width: 500px;
-        }
-        label, select, input, button {
-            display: block;
-            margin: 10px auto;
-        }
-        select, input, button {
-            padding: 10px;
-            font-size: 16px;
-            width: 100%;
-            max-width: 300px;
-        }
-        button {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #218838;
-        }
-        #resultado {
-            margin-top: 20px;
-            font-weight: bold;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
         <h1>Calculador de Envíos</h1>
-        <form id="envioForm" method="POST">
-            <label for="tipo_envio">Tipo de envío:</label>
+
+        {% if not session.tipo_envio %}
+        <form method="POST">
+            <label for="tipo_envio">Tipo de Envío:</label>
             <select name="tipo_envio" id="tipo_envio">
                 <option value="bulto">Bulto</option>
                 <option value="pallet">Pallet</option>
             </select>
-            
-            {% if session.tipo_envio %}
-            <label for="localidad">Localidad:</label>
+            <button type="submit">Siguiente</button>
+        </form>
+        {% elif session.tipo_envio == 'bulto' %}
+        <form method="POST">
+            <label for="localidad">Selecciona Localidad:</label>
             <select name="localidad" id="localidad">
                 {% for localidad in localidades %}
                     <option value="{{ localidad }}">{{ localidad }}</option>
                 {% endfor %}
             </select>
-            {% endif %}
-            
             <button type="submit">Siguiente</button>
         </form>
-        
-        {% if session.localidad %}
-        <p>Localidad seleccionada: {{ session.localidad }}</p>
+        {% elif session.tipo_envio == 'pallet' %}
+        <form method="POST">
+            <label for="fragil">¿Es frágil?</label>
+            <input type="radio" name="fragil" value="si"> Sí
+            <input type="radio" name="fragil" value="no"> No
+            <label for="pesado">¿Es pesado?</label>
+            <input type="radio" name="pesado" value="si"> Sí
+            <input type="radio" name="pesado" value="no"> No
+            <button type="submit">Siguiente</button>
+        </form>
+        {% elif session.tipo_envio == 'bulto' %}
+        <form method="POST">
+            <label for="cantidad">Cantidad de bultos:</label>
+            <input type="number" name="cantidad" min="1" required>
+            <button type="submit">Siguiente</button>
+        </form>
+        {% elif session.tipo_envio == 'valor_declarado' %}
+        <form method="POST">
+            <label for="valor">Valor declarado:</label>
+            <input type="text" name="valor" required>
+            <button type="submit">Calcular</button>
+        </form>
+        {% endif %}
+
+        {% if session.total %}
+        <div id="resultado">
+            <h2>Resultado</h2>
+            <p>Base: ${{ total_base }}</p>
+            <p>Seguro: ${{ seguro }}</p>
+            <p>IVA: ${{ iva }}</p>
+            <p>Total: ${{ total }}</p>
+        </div>
         {% endif %}
     </div>
 </body>
