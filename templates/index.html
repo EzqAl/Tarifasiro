@@ -29,7 +29,7 @@
         }
 
         /* Menús desplegables */
-        select, input[type="text"], input[type="number"], input[type="submit"] {
+        select, input[type="number"], input[type="submit"] {
             margin: 10px 0;
             padding: 8px;
             font-size: 1rem;
@@ -75,8 +75,9 @@
 
     <h1>Calculadora de Envíos</h1>
 
+    <!-- Formulario para Tipo de Envío y Localidad -->
     <div class="form-container">
-        <form method="POST" action="{{ url_for('inicio') }}">
+        <form method="POST" action="{{ url_for('localidad') }}">
             <label for="tipo_envio">Tipo de Envío</label>
             <select name="tipo_envio" id="tipo_envio">
                 <option value="pallet">Pallet</option>
@@ -95,6 +96,7 @@
     </div>
 
     {% if total_base %}
+    <!-- Resultados -->
     <div class="result-container">
         <h2>Resultado</h2>
         <p><strong>Total Base:</strong> ${{ total_base }}</p>
