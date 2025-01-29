@@ -52,42 +52,61 @@ def index():
 def handle_steps():
     current_step = session.get('current_step', 'inicio')
     
-    # Lógica para cada paso
     if current_step == 'localidad':
         if request.method == 'POST':
             session['localidad'] = request.form['localidad']
             session['current_step'] = 'pallet' if session['tipo_envio'] == 'pallet' else 'cantidad_bultos'
-        return redirect(url_for('handle_steps'))
+            return redirect(url_for('handle_steps'))
+        return render_template('index.html')
     
     elif current_step == 'pallet':
         if request.method == 'POST':
             session['fragil'] = request.form.get('fragil') == 'si'
             session['pesado'] = request.form.get('pesado') == 'si'
             session['current_step'] = 'valor_declarado'
-        return redirect(url_for('handle_steps'))
+            return redirect(url_for('handle_steps'))
+        return render_template('index.html')
     
     elif current_step == 'cantidad_bultos':
         if request.method == 'POST':
             session['cantidad_bultos'] = int(request.form['cantidad'])
             session['current_step'] = 'seleccion_categorias'
-        return redirect(url_for('handle_steps'))
+            return redirect(url_for('handle_steps'))
+        return render_template('index.html')
     
     elif current_step == 'seleccion_categorias':
         if request.method == 'POST':
             session['categorias'] = request.form.getlist('categoria')
             session['pesado'] = [str(i) in request.form.getlist('pesado') for i in range(session['cantidad_bultos'])]
             session['current_step'] = 'valor_declarado'
-        return redirect(url_for('handle_steps'))
+            return redirect(url_for('handle_steps'))
+        return render_template('index.html')
     
     elif current_step == 'valor_declarado':
         if request.method == 'POST':
             session['valor_declarado'] = float(request.form['valor'])
             session['current_step'] = 'resultado'
-        return redirect(url_for('handle_steps'))
+            return redirect(url_for('handle_steps'))
+        return render_template('index.html')
     
     elif current_step == 'resultado':
         try:
-            # Cálculos igual que antes...
+            localidad = session['localidad']
+            categorias = session['categorias']
+            valor_declarado = session['valor_declarado']
+            
+            total_base = sum(PRECIOS[localidad][categoria] for categoria in categorias)
+            seguro = valor_declarado * 0.009
+            iva = (total_base + seguro) * 0.21
+            total = total_base + seguro + iva
+            
+            context = {
+                'total_base': total_base,
+                'seguro': seguro,
+                'iva': iva,
+                'total': total
+            }
+            
             return render_template('index.html', **context)
         except KeyError as e:
             print(f"Error: {str(e)}")
