@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, request, session, jsonify
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
@@ -29,72 +29,21 @@ PRECIOS = {
     }
 }
 
-@app.context_processor
-def inject_localidades():
-    localidades = list(PRECIOS.keys())
-    return dict(localidades=localidades)
-
 @app.route('/', methods=['GET', 'POST'])
 def inicio():
     if request.method == 'POST':
         session['tipo_envio'] = request.form['tipo_envio']
-        return redirect(url_for('localidad'))
-    return render_template('index.html')
-
-@app.route('/localidad', methods=['GET', 'POST'])
-def localidad():
-    if 'tipo_envio' not in session:
-        return redirect(url_for('inicio'))
-    
-    if request.method == 'POST':
         session['localidad'] = request.form['localidad']
-        if session['tipo_envio'] == 'pallet':
-            return redirect(url_for('pallet'))
-        else:
-            return redirect(url_for('cantidad_bultos'))
-    
-    return render_template('index.html')
-
-@app.route('/pallet', methods=['GET', 'POST'])
-def pallet():
-    if request.method == 'POST':
+        session['cantidad_bultos'] = int(request.form['cantidad'])
+        session['categorias'] = request.form.getlist('categorias')
+        session['valor_declarado'] = float(request.form['valor'])
         session['fragil'] = request.form.get('fragil') == 'si'
         session['pesado'] = request.form.get('pesado') == 'si'
-        return redirect(url_for('valor_declarado'))
-    return render_template('index.html')
+        return jsonify(calcular_resultado())
+    localidades = list(PRECIOS.keys())
+    return render_template('index.html', localidades=localidades)
 
-@app.route('/cantidad_bultos', methods=['GET', 'POST'])
-def cantidad_bultos():
-    if request.method == 'POST':
-        session['cantidad_bultos'] = int(request.form['cantidad'])
-        return redirect(url_for('seleccion_categorias'))
-    return render_template('index.html')
-
-@app.route('/seleccion_categorias', methods=['GET', 'POST'])
-def seleccion_categorias():
-    cantidad = session.get('cantidad_bultos', 0)
-    
-    if request.method == 'POST':
-        session['categorias'] = request.form.getlist('categoria')
-        pesado = [str(i) in request.form.getlist('pesado') for i in range(cantidad)]
-        session['pesado'] = pesado
-        return redirect(url_for('valor_declarado'))
-    
-    return render_template('index.html', cantidad=cantidad)
-
-@app.route('/valor_declarado', methods=['GET', 'POST'])
-def valor_declarado():
-    if request.method == 'POST':
-        session['valor_declarado'] = float(request.form['valor'])
-        return redirect(url_for('resultado'))
-    return render_template('index.html')
-
-@app.route('/resultado')
-def resultado():
-    if 'localidad' not in session or 'tipo_envio' not in session:
-        return redirect(url_for('inicio'))
-    
-    # Calcular precios
+def calcular_resultado():
     localidad = session['localidad']
     valor_declarado = session['valor_declarado']
     
@@ -106,9 +55,9 @@ def resultado():
         total_base = precio
     else:
         total_base = 0
-        for i, categoria in enumerate(session['categorias']):
+        for categoria in session['categorias']:
             precio = PRECIOS[localidad][categoria]
-            if categoria != "Donación" and session['pesado'][i]:
+            if categoria != "Donación" and session['pesado']:
                 precio *= 1.15
             total_base += precio
     
@@ -117,13 +66,13 @@ def resultado():
     iva = subtotal * 0.21
     total = subtotal + iva
     
-    return render_template('index.html',
-        total_base=total_base,
-        seguro=seguro,
-        iva=iva,
-        total=total,
-        valor_declarado=valor_declarado
-    )
+    return {
+        "total_base": total_base,
+        "seguro": seguro,
+        "iva": iva,
+        "total": total,
+        "valor_declarado": valor_declarado
+    }
 
 if __name__ == '__main__':
     app.run(debug=True)
