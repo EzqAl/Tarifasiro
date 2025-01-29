@@ -3,166 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Envíos</title>
+    <title>Cálculo de Envío</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            margin: 0;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
+            box-sizing: border-box;
         }
-
-        h1 {
-            margin-bottom: 20px;
-            font-size: 2rem;
-        }
-
-        select, input[type="number"], input[type="text"], input[type="submit"] {
-            margin: 10px 0;
-            padding: 8px;
-            font-size: 1rem;
-            width: 100%;
-            max-width: 300px;
-        }
-
         .form-container {
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 600px;
+            max-width: 800px;
+            margin: auto;
         }
-
-        .result-container {
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        select, input[type="number"], input[type="text"] {
             width: 100%;
-            max-width: 600px;
+            padding: 8px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .results {
             margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 20px;
+            background-color: #f9f9f9;
         }
-
-        @media (max-width: 600px) {
-            body {
-                padding: 10px;
-            }
-
-            .form-container, .result-container {
-                width: 100%;
-                padding: 15px;
-            }
+        .results h3 {
+            margin-top: 0;
+        }
+        .results p {
+            margin: 5px 0;
         }
     </style>
 </head>
 <body>
+    <div class="form-container">
+        <h1>Cálculo de Envío</h1>
 
-<h1>Calculadora de Envíos</h1>
+        <form method="POST">
+            <!-- Tipo de Envío -->
+            <label for="tipo_envio">Tipo de Envío</label>
+            <select name="tipo_envio" id="tipo_envio" onchange="this.form.submit()">
+                <option value="">Selecciona un tipo de envío</option>
+                <option value="pallet" {% if session.tipo_envio == 'pallet' %}selected{% endif %}>Pallet</option>
+                <option value="bultos" {% if session.tipo_envio == 'bultos' %}selected{% endif %}>Bultos</option>
+                <option value="donacion" {% if session.tipo_envio == 'donacion' %}selected{% endif %}>Donación</option>
+            </select>
 
-<!-- Formulario para Tipo de Envío y Localidad -->
-<div class="form-container">
-    <form method="POST" action="{{ url_for('inicio') }}">
-        <label for="tipo_envio">Tipo de Envío</label>
-        <select name="tipo_envio" id="tipo_envio">
-            <option value="pallet">Pallet</option>
-            <option value="bultos">Bultos</option>
-        </select>
-
-        <label for="localidad">Localidad</label>
-        <select name="localidad" id="localidad">
-            {% for localidad in localidades %}
-                <option value="{{ localidad }}">{{ localidad }}</option>
-            {% endfor %}
-        </select>
-
-        <div id="formulario_adicional"></div> <!-- Aquí se agregará el formulario dinámicamente -->
-
-        <input type="submit" value="Calcular">
-    </form>
-</div>
-
-{% if total_base %}
-<!-- Resultados -->
-<div class="result-container">
-    <h2>Resultado</h2>
-    <p><strong>Total Base:</strong> ${{ total_base }}</p>
-    <p><strong>Seguro:</strong> ${{ seguro }}</p>
-    <p><strong>IVA (21%):</strong> ${{ iva }}</p>
-    <p><strong>Total:</strong> ${{ total }}</p>
-</div>
-{% endif %}
-
-<script>
-    // Script para manejar el formulario dinámico según el tipo de envío
-    document.getElementById("tipo_envio").addEventListener("change", function() {
-        const tipoEnvio = this.value;
-        const formularioAdicional = document.getElementById("formulario_adicional");
-        
-        formularioAdicional.innerHTML = ""; // Limpiar el formulario adicional previo
-
-        if (tipoEnvio === "pallet") {
-            formularioAdicional.innerHTML = `
-                <label for="fragil">¿Frágil?</label>
-                <select name="fragil" id="fragil">
-                    <option value="si">Sí</option>
-                    <option value="no">No</option>
+            {% if session.tipo_envio %}
+                <!-- Localidad -->
+                <label for="localidad">Selecciona la Localidad</label>
+                <select name="localidad" id="localidad" onchange="this.form.submit()">
+                    <option value="">Selecciona una localidad</option>
+                    {% for localidad in localidades %}
+                        <option value="{{ localidad }}" {% if session.localidad == localidad %}selected{% endif %}>{{ localidad }}</option>
+                    {% endfor %}
                 </select>
-                <label for="pesado">¿Pesado?</label>
-                <select name="pesado" id="pesado">
-                    <option value="si">Sí</option>
-                    <option value="no">No</option>
+            {% endif %}
+
+            {% if session.localidad %}
+                {% if session.tipo_envio == 'pallet' %}
+                    <!-- Pallet Options -->
+                    <label for="fragil">¿Es frágil?</label>
+                    <select name="fragil" id="fragil">
+                        <option value="no">No</option>
+                        <option value="si" {% if session.fragil %}selected{% endif %}>Sí</option>
+                    </select>
+
+                    <label for="pesado">¿Es pesado?</label>
+                    <select name="pesado" id="pesado">
+                        <option value="no">No</option>
+                        <option value="si" {% if session.pesado %}selected{% endif %}>Sí</option>
+                    </select>
+
+                {% elif session.tipo_envio == 'bultos' %}
+                    <!-- Cantidad de Bultos -->
+                    <label for="cantidad">Cantidad de Bultos</label>
+                    <input type="number" name="cantidad" id="cantidad" min="1" value="{{ session.cantidad_bultos if session.cantidad_bultos else '' }}" onchange="this.form.submit()">
+                {% endif %}
+            {% endif %}
+
+            {% if session.cantidad_bultos %}
+                <!-- Selección de Categorías -->
+                <label for="categorias">Selecciona las categorías de los bultos</label>
+                <select name="categoria" id="categorias" multiple>
+                    <option value="Chica" {% if "Chica" in session.categorias %}selected{% endif %}>Chica</option>
+                    <option value="Mediana" {% if "Mediana" in session.categorias %}selected{% endif %}>Mediana</option>
+                    <option value="Grande" {% if "Grande" in session.categorias %}selected{% endif %}>Grande</option>
+                    <option value="XL" {% if "XL" in session.categorias %}selected{% endif %}>XL</option>
+                    <option value="XXL" {% if "XXL" in session.categorias %}selected{% endif %}>XXL</option>
+                    <option value="M3" {% if "M3" in session.categorias %}selected{% endif %}>M3</option>
+                    <option value="Donación" {% if "Donación" in session.categorias %}selected{% endif %}>Donación</option>
                 </select>
-            `;
-        } else if (tipoEnvio === "bultos") {
-            formularioAdicional.innerHTML = `
-                <label for="cantidad">Cantidad de Bultos</label>
-                <input type="number" name="cantidad" id="cantidad" min="1">
-                <div id="categorias"></div> <!-- Aquí se agregarán las categorías dinámicamente -->
-            `;
-        }
-    });
 
-    // Script para mostrar categorías según cantidad de bultos
-    document.getElementById("cantidad")?.addEventListener("input", function() {
-        const cantidad = this.value;
-        const categoriasDiv = document.getElementById("categorias");
-        
-        categoriasDiv.innerHTML = ""; // Limpiar categorías previas
-
-        for (let i = 0; i < cantidad; i++) {
-            categoriasDiv.innerHTML += `
-                <label for="categoria${i}">Categoría Bulto ${i + 1}</label>
-                <select name="categoria" id="categoria${i}">
-                    <option value="Chica">Chica</option>
-                    <option value="Mediana">Mediana</option>
-                    <option value="Grande">Grande</option>
-                    <option value="XL">XL</option>
-                    <option value="XXL">XXL</option>
-                    <option value="M3">M3</option>
-                    <option value="Donación">Donación</option>
+                <label for="pesado_bultos">¿Son pesados?</label>
+                <select name="pesado" id="pesado_bultos" multiple>
+                    {% for i in range(session.cantidad_bultos) %}
+                        <option value="{{ i }}" {% if session.pesado and str(i) in session.pesado %}selected{% endif %}>Bulto {{ i+1 }} Pesado</option>
+                    {% endfor %}
                 </select>
-                <label for="pesado${i}">¿Pesado?</label>
-                <select name="pesado" id="pesado${i}">
-                    <option value="si">Sí</option>
-                    <option value="no">No</option>
-                </select>
-            `;
-        }
-    });
+            {% endif %}
 
-    // Activar el cambio inicial en el tipo de envío para mostrar el formulario dinámico desde el principio
-    document.getElementById("tipo_envio").dispatchEvent(new Event("change"));
-</script>
+            <!-- Valor Declarado -->
+            <label for="valor">Valor Declarado</label>
+            <input type="number" name="valor" id="valor" value="{{ session.valor_declarado if session.valor_declarado else '' }}" required>
 
+            <button type="submit">Calcular</button>
+        </form>
+
+        {% if session.valor_declarado %}
+            <div class="results">
+                <h3>Resultados</h3>
+                <p><strong>Total Base:</strong> ${{ total_base }}</p>
+                <p><strong>Seguro:</strong> ${{ seguro }}</p>
+                <p><strong>IVA (21%):</strong> ${{ iva }}</p>
+                <p><strong>Total Final:</strong> ${{ total }}</p>
+            </div>
+        {% endif %}
+    </div>
 </body>
 </html>
