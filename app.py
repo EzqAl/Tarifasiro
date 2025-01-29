@@ -91,6 +91,9 @@ def valor_declarado():
 
 @app.route('/resultado')
 def resultado():
+    if 'localidad' not in session or 'tipo_envio' not in session:
+        return redirect(url_for('inicio'))
+    
     # Calcular precios
     localidad = session['localidad']
     valor_declarado = session['valor_declarado']
