@@ -36,7 +36,6 @@ def inject_localidades():
 
 @app.route('/', methods=['GET', 'POST'])
 def inicio():
-    session.clear()
     if request.method == 'POST':
         session['tipo_envio'] = request.form['tipo_envio']
         return redirect(url_for('localidad'))
@@ -84,9 +83,11 @@ def seleccion_categorias():
     if 'cantidad_bultos' not in session:
         return redirect(url_for('inicio'))
     
+    cantidad = session['cantidad_bultos']
+    
     if request.method == 'POST':
         session['categorias'] = request.form.getlist('categoria')
-        session['pesado'] = [str(i) in request.form.getlist('pesado') for i in range(session['cantidad_bultos'])]
+        session['pesado'] = [str(i) in request.form.getlist('pesado') for i in range(cantidad)]
         return redirect(url_for('valor_declarado'))
     
     return render_template('index.html')
@@ -100,13 +101,13 @@ def valor_declarado():
 
 @app.route('/resultado')
 def resultado():
+    if 'localidad' not in session or 'valor_declarado' not in session:
+        return redirect(url_for('inicio'))
+    
+    localidad = session['localidad']
+    valor_declarado = session['valor_declarado']
+    
     try:
-        if 'valor_declarado' not in session:
-            return redirect(url_for('inicio'))
-        
-        localidad = session['localidad']
-        valor_declarado = session['valor_declarado']
-        
         if session['tipo_envio'] == 'pallet':
             tipo_pallet = "Pallet (frágil)" if session.get('fragil') else "Pallet (no frágil)"
             precio = PRECIOS[localidad][tipo_pallet]
@@ -142,11 +143,6 @@ def resultado():
     except KeyError as e:
         print(f"Error en cálculo: {str(e)}")
         return redirect(url_for('inicio'))
-
-@app.route('/reset')
-def reset():
-    session.clear()
-    return redirect(url_for('inicio'))
 
 if __name__ == '__main__':
     app.run(debug=True)
