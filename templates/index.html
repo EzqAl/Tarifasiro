@@ -48,25 +48,11 @@
             font-weight: bold;
         }
     </style>
-    <script>
-        function calcularEnvio(event) {
-            event.preventDefault();
-            let formData = new FormData(document.getElementById("envioForm"));
-            fetch("/resultado", {
-                method: "POST",
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("resultado").innerHTML = `Total a pagar: $${data.total}`;
-            });
-        }
-    </script>
 </head>
 <body>
     <div class="container">
         <h1>Calculador de Envíos</h1>
-        <form id="envioForm" onsubmit="calcularEnvio(event)">
+        <form action="/resultado" method="POST">
             <label for="tipo_envio">Tipo de envío:</label>
             <select name="tipo_envio" id="tipo_envio">
                 <option value="bulto">Bulto</option>
