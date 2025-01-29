@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculador de Envíos</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+        }
+        label, select, input, button {
+            display: block;
+            margin: 10px auto;
+        }
+        select, input, button {
+            padding: 10px;
+            font-size: 16px;
+            width: 100%;
+            max-width: 300px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #resultado {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        function calcularEnvio(event) {
+            event.preventDefault();
+            let formData = new FormData(document.getElementById("envioForm"));
+            fetch("/resultado", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("resultado").innerHTML = `Total a pagar: $${data.total}`;
+            });
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Calculador de Envíos</h1>
+        <form id="envioForm" onsubmit="calcularEnvio(event)">
+            <label for="tipo_envio">Tipo de envío:</label>
+            <select name="tipo_envio" id="tipo_envio">
+                <option value="bulto">Bulto</option>
+                <option value="pallet">Pallet</option>
+            </select>
+            
+            <label for="localidad">Localidad:</label>
+            <select name="localidad" id="localidad">
+                <option value="Resistencia/Ctes Cap">Resistencia/Ctes Cap</option>
+                <option value="Saenz Peña">Saenz Peña</option>
+                <option value="Int del Chaco/Formosa">Int del Chaco/Formosa</option>
+                <option value="Int Formosa">Int Formosa</option>
+                <option value="Clorinda">Clorinda</option>
+            </select>
+            
+            <label for="cantidad">Cantidad de bultos:</label>
+            <input type="number" name="cantidad" id="cantidad" min="1" value="1">
+            
+            <label for="categorias">Categorías:</label>
+            <select name="categorias" id="categorias" multiple>
+                <option value="Chica">Chica</option>
+                <option value="Mediana">Mediana</option>
+                <option value="Grande">Grande</option>
+                <option value="XL">XL</option>
+                <option value="XXL">XXL</option>
+                <option value="M3">M3</option>
+                <option value="Donación">Donación</option>
+            </select>
+            
+            <label for="valor">Valor declarado:</label>
+            <input type="number" name="valor" id="valor" min="0" step="100">
+            
+            <button type="submit">Calcular</button>
+        </form>
+        <p id="resultado"></p>
+    </div>
+</body>
+</html>
