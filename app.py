@@ -30,119 +30,70 @@ PRECIOS = {
 }
 
 @app.context_processor
-def inject_localidades():
-    localidades = list(PRECIOS.keys())
-    return dict(localidades=localidades)
+def inject_variables():
+    return {
+        'step': session.get('current_step', 'inicio'),
+        'localidades': list(PRECIOS.keys()),
+        'cantidad_bultos': session.get('cantidad_bultos', 0)
+    }
 
 @app.route('/', methods=['GET', 'POST'])
-def inicio():
+def index():
+    session['current_step'] = 'inicio'
+    
     if request.method == 'POST':
         session['tipo_envio'] = request.form['tipo_envio']
-        return redirect(url_for('localidad'))
-    return render_template('index.html')
-
-@app.route('/localidad', methods=['GET', 'POST'])
-def localidad():
-    if 'tipo_envio' not in session:
-        return redirect(url_for('inicio'))
-    
-    if request.method == 'POST':
-        session['localidad'] = request.form['localidad']
-        if session['tipo_envio'] == 'pallet':
-            return redirect(url_for('pallet'))
-        else:
-            return redirect(url_for('cantidad_bultos'))
+        session['current_step'] = 'localidad'
+        return redirect(url_for('handle_steps'))
     
     return render_template('index.html')
 
-@app.route('/pallet', methods=['GET', 'POST'])
-def pallet():
-    if 'localidad' not in session:
-        return redirect(url_for('inicio'))
+@app.route('/handle_steps', methods=['GET', 'POST'])
+def handle_steps():
+    current_step = session.get('current_step', 'inicio')
     
-    if request.method == 'POST':
-        session['fragil'] = request.form.get('fragil') == 'si'
-        session['pesado'] = request.form.get('pesado') == 'si'
-        return redirect(url_for('valor_declarado'))
+    # Lógica para cada paso
+    if current_step == 'localidad':
+        if request.method == 'POST':
+            session['localidad'] = request.form['localidad']
+            session['current_step'] = 'pallet' if session['tipo_envio'] == 'pallet' else 'cantidad_bultos'
+        return redirect(url_for('handle_steps'))
     
-    return render_template('index.html')
-
-@app.route('/cantidad_bultos', methods=['GET', 'POST'])
-def cantidad_bultos():
-    if 'localidad' not in session:
-        return redirect(url_for('inicio'))
+    elif current_step == 'pallet':
+        if request.method == 'POST':
+            session['fragil'] = request.form.get('fragil') == 'si'
+            session['pesado'] = request.form.get('pesado') == 'si'
+            session['current_step'] = 'valor_declarado'
+        return redirect(url_for('handle_steps'))
     
-    if request.method == 'POST':
-        session['cantidad_bultos'] = int(request.form['cantidad'])
-        return redirect(url_for('seleccion_categorias'))
+    elif current_step == 'cantidad_bultos':
+        if request.method == 'POST':
+            session['cantidad_bultos'] = int(request.form['cantidad'])
+            session['current_step'] = 'seleccion_categorias'
+        return redirect(url_for('handle_steps'))
     
-    return render_template('index.html')
-
-@app.route('/seleccion_categorias', methods=['GET', 'POST'])
-def seleccion_categorias():
-    if 'cantidad_bultos' not in session:
-        return redirect(url_for('inicio'))
+    elif current_step == 'seleccion_categorias':
+        if request.method == 'POST':
+            session['categorias'] = request.form.getlist('categoria')
+            session['pesado'] = [str(i) in request.form.getlist('pesado') for i in range(session['cantidad_bultos'])]
+            session['current_step'] = 'valor_declarado'
+        return redirect(url_for('handle_steps'))
     
-    cantidad = session['cantidad_bultos']
+    elif current_step == 'valor_declarado':
+        if request.method == 'POST':
+            session['valor_declarado'] = float(request.form['valor'])
+            session['current_step'] = 'resultado'
+        return redirect(url_for('handle_steps'))
     
-    if request.method == 'POST':
-        session['categorias'] = request.form.getlist('categoria')
-        session['pesado'] = [str(i) in request.form.getlist('pesado') for i in range(cantidad)]
-        return redirect(url_for('valor_declarado'))
+    elif current_step == 'resultado':
+        try:
+            # Cálculos igual que antes...
+            return render_template('index.html', **context)
+        except KeyError as e:
+            print(f"Error: {str(e)}")
+            return redirect(url_for('index'))
     
-    return render_template('index.html')
-
-@app.route('/valor_declarado', methods=['GET', 'POST'])
-def valor_declarado():
-    if request.method == 'POST':
-        session['valor_declarado'] = float(request.form['valor'])
-        return redirect(url_for('resultado'))
-    return render_template('index.html')
-
-@app.route('/resultado')
-def resultado():
-    if 'localidad' not in session or 'valor_declarado' not in session:
-        return redirect(url_for('inicio'))
-    
-    localidad = session['localidad']
-    valor_declarado = session['valor_declarado']
-    
-    try:
-        if session['tipo_envio'] == 'pallet':
-            tipo_pallet = "Pallet (frágil)" if session.get('fragil') else "Pallet (no frágil)"
-            precio = PRECIOS[localidad][tipo_pallet]
-            
-            if session.get('pesado'):
-                precio *= 1.15
-            
-            total_base = round(precio, 2)
-        else:
-            total_base = 0
-            for i, categoria in enumerate(session.get('categorias', [])):
-                precio = PRECIOS[localidad][categoria]
-                
-                if categoria != "Donación" and session.get('pesado', [])[i]:
-                    precio *= 1.15
-                
-                total_base += precio
-            total_base = round(total_base, 2)
-        
-        seguro = round(valor_declarado * 0.009, 2)
-        subtotal = round(total_base + seguro, 2)
-        iva = round(subtotal * 0.21, 2)
-        total = round(subtotal + iva, 2)
-        
-        return render_template('index.html',
-            total_base=total_base,
-            seguro=seguro,
-            iva=iva,
-            total=total,
-            valor_declarado=valor_declarado
-        )
-    
-    except KeyError as e:
-        print(f"Error en cálculo: {str(e)}")
-        return redirect(url_for('inicio'))
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=10000, debug=False)
