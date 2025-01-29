@@ -3,130 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cálculo de Envío</title>
+    <title>Calculadora de Envíos</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: white;
             padding: 20px;
-            box-sizing: border-box;
-        }
-        .form-container {
-            max-width: 800px;
-            margin: auto;
-        }
-        select, input[type="number"], input[type="text"] {
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             width: 100%;
-            padding: 8px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            max-width: 600px;
+            border-radius: 8px;
         }
-        button {
-            padding: 10px 20px;
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        select, input[type="number"], input[type="text"], input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[type="submit"] {
             background-color: #4CAF50;
             color: white;
             border: none;
-            border-radius: 5px;
             cursor: pointer;
         }
-        .results {
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .resultado {
             margin-top: 20px;
-            border: 1px solid #ccc;
-            padding: 20px;
-            background-color: #f9f9f9;
-        }
-        .results h3 {
-            margin-top: 0;
-        }
-        .results p {
-            margin: 5px 0;
+            padding: 10px;
+            background-color: #e0ffe0;
+            border: 1px solid #4CAF50;
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
-    <div class="form-container">
-        <h1>Cálculo de Envío</h1>
-
+    <div class="container">
+        <h1>Calculadora de Envíos</h1>
         <form method="POST">
-            <!-- Tipo de Envío -->
-            <label for="tipo_envio">Tipo de Envío</label>
-            <select name="tipo_envio" id="tipo_envio" onchange="this.form.submit()">
-                <option value="">Selecciona un tipo de envío</option>
-                <option value="pallet" {% if session.tipo_envio == 'pallet' %}selected{% endif %}>Pallet</option>
-                <option value="bultos" {% if session.tipo_envio == 'bultos' %}selected{% endif %}>Bultos</option>
-                <option value="donacion" {% if session.tipo_envio == 'donacion' %}selected{% endif %}>Donación</option>
-            </select>
-
-            {% if session.tipo_envio %}
-                <!-- Localidad -->
-                <label for="localidad">Selecciona la Localidad</label>
-                <select name="localidad" id="localidad" onchange="this.form.submit()">
-                    <option value="">Selecciona una localidad</option>
+            <div class="form-group">
+                <label for="tipo_mercaderia">Tipo de Mercadería</label>
+                <select name="tipo_mercaderia" required>
+                    <option value="Pallet">Pallet</option>
+                    <option value="Bulto">Bulto</option>
+                    <option value="Donación">Donación</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="cantidad">Cantidad</label>
+                <input type="number" name="cantidad" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="localidad">Localidad</label>
+                <select name="localidad" required>
                     {% for localidad in localidades %}
-                        <option value="{{ localidad }}" {% if session.localidad == localidad %}selected{% endif %}>{{ localidad }}</option>
+                    <option value="{{ localidad }}">{{ localidad }}</option>
                     {% endfor %}
                 </select>
-            {% endif %}
+            </div>
 
-            {% if session.localidad %}
-                {% if session.tipo_envio == 'pallet' %}
-                    <!-- Pallet Options -->
-                    <label for="fragil">¿Es frágil?</label>
-                    <select name="fragil" id="fragil">
-                        <option value="no">No</option>
-                        <option value="si" {% if session.fragil %}selected{% endif %}>Sí</option>
-                    </select>
-
-                    <label for="pesado">¿Es pesado?</label>
-                    <select name="pesado" id="pesado">
-                        <option value="no">No</option>
-                        <option value="si" {% if session.pesado %}selected{% endif %}>Sí</option>
-                    </select>
-
-                {% elif session.tipo_envio == 'bultos' %}
-                    <!-- Cantidad de Bultos -->
-                    <label for="cantidad">Cantidad de Bultos</label>
-                    <input type="number" name="cantidad" id="cantidad" min="1" value="{{ session.cantidad_bultos if session.cantidad_bultos else '' }}" onchange="this.form.submit()">
-                {% endif %}
-            {% endif %}
-
-            {% if session.cantidad_bultos %}
-                <!-- Selección de Categorías -->
-                <label for="categorias">Selecciona las categorías de los bultos</label>
-                <select name="categoria" id="categorias" multiple>
-                    <option value="Chica" {% if "Chica" in session.categorias %}selected{% endif %}>Chica</option>
-                    <option value="Mediana" {% if "Mediana" in session.categorias %}selected{% endif %}>Mediana</option>
-                    <option value="Grande" {% if "Grande" in session.categorias %}selected{% endif %}>Grande</option>
-                    <option value="XL" {% if "XL" in session.categorias %}selected{% endif %}>XL</option>
-                    <option value="XXL" {% if "XXL" in session.categorias %}selected{% endif %}>XXL</option>
-                    <option value="M3" {% if "M3" in session.categorias %}selected{% endif %}>M3</option>
-                    <option value="Donación" {% if "Donación" in session.categorias %}selected{% endif %}>Donación</option>
+            <div class="form-group">
+                <label for="fragil">¿Es frágil?</label>
+                <select name="fragil">
+                    <option value="no">No</option>
+                    <option value="si">Sí</option>
                 </select>
-
-                <label for="pesado_bultos">¿Son pesados?</label>
-                <select name="pesado" id="pesado_bultos" multiple>
-                    {% for i in range(session.cantidad_bultos) %}
-                        <option value="{{ i }}" {% if session.pesado and str(i) in session.pesado %}selected{% endif %}>Bulto {{ i+1 }} Pesado</option>
-                    {% endfor %}
+            </div>
+            
+            <div class="form-group">
+                <label for="peso">¿Es pesado?</label>
+                <select name="peso">
+                    <option value="no">No</option>
+                    <option value="si">Sí</option>
                 </select>
-            {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="valor_declarado">Valor Declarado</label>
+                <input type="text" name="valor_declarado" required>
+            </div>
 
-            <!-- Valor Declarado -->
-            <label for="valor">Valor Declarado</label>
-            <input type="number" name="valor" id="valor" value="{{ session.valor_declarado if session.valor_declarado else '' }}" required>
-
-            <button type="submit">Calcular</button>
+            <div class="form-group">
+                <input type="submit" value="Calcular">
+            </div>
         </form>
 
-        {% if session.valor_declarado %}
-            <div class="results">
-                <h3>Resultados</h3>
-                <p><strong>Total Base:</strong> ${{ total_base }}</p>
-                <p><strong>Seguro:</strong> ${{ seguro }}</p>
-                <p><strong>IVA (21%):</strong> ${{ iva }}</p>
-                <p><strong>Total Final:</strong> ${{ total }}</p>
-            </div>
+        {% if total > 0 %}
+        <div class="resultado">
+            <h3>Resultado:</h3>
+            <p>Total Base: ${{ total_base }}</p>
+            <p>Seguro: ${{ seguro }}</p>
+            <p>IVA (21%): ${{ iva }}</p>
+            <p>Total: ${{ total }}</p>
+        </div>
         {% endif %}
     </div>
 </body>
