@@ -3,322 +3,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculador de Envíos</title>
+    <title>Calculadora de Fletes Profesional</title>
     <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #34495e;
-            --accent-color: #3498db;
-            --background: #f8f9fa;
-            --text-color: #2c3e50;
-            --border-color: #bdc3c7;
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--background);
-            color: var(--text-color);
-            line-height: 1.5;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            padding: 1rem;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
 
         .container {
             background: white;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 800px;
-            margin: auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        h1, h2 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+            text-align: center;
         }
 
         h1 {
-            color: var(--primary-color);
-            text-align: center;
-            margin-bottom: 2rem;
-            font-size: 1.8rem;
-            font-weight: 500;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 15px;
+            font-size: 2.2em;
         }
 
-        .form-step {
-            margin: 1.5rem 0;
+        .form-section {
+            margin: 25px 0;
+            padding: 20px;
+            border: 1px solid #eee;
+            border-radius: 8px;
         }
 
         .form-group {
-            margin-bottom: 1.2rem;
+            margin-bottom: 20px;
         }
 
         label {
             display: block;
-            margin-bottom: 0.5rem;
+            margin-bottom: 8px;
+            color: #34495e;
             font-weight: 500;
-            color: var(--secondary-color);
         }
 
-        select, input, button {
+        select, input {
             width: 100%;
-            padding: 0.8rem;
-            border: 2px solid var(--border-color);
+            padding: 12px;
+            border: 2px solid #ddd;
             border-radius: 6px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        select:focus, input:focus {
-            border-color: var(--accent-color);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+            font-size: 16px;
+            margin-top: 5px;
         }
 
         button {
-            background-color: var(--accent-color);
+            background: #3498db;
             color: white;
-            font-weight: 500;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 6px;
             cursor: pointer;
-            margin-top: 1rem;
+            font-size: 16px;
+            transition: background 0.3s ease;
+            width: 100%;
         }
 
         button:hover {
-            background-color: #2980b9;
+            background: #2980b9;
         }
 
-        .select-group {
-            position: relative;
-            margin-bottom: 1rem;
+        .resultados {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
         }
 
-        .select-group::after {
-            content: "▼";
-            position: absolute;
-            top: 50%;
-            right: 1rem;
-            transform: translateY(-50%);
-            pointer-events: none;
-            color: var(--secondary-color);
-        }
-
-        .bulto {
-            background: var(--background);
-            padding: 1rem;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-            border: 1px solid var(--border-color);
-        }
-
-        .bulto h3 {
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-            font-size: 1rem;
-        }
-
-        .checkbox-label {
+        .result-item {
+            margin: 15px 0;
+            padding: 10px;
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
+            justify-content: space-between;
+            border-bottom: 1px solid #eee;
         }
 
-        input[type="checkbox"] {
-            width: auto;
-            transform: scale(1.2);
-        }
-
-        #resultado {
-            margin-top: 2rem;
-            padding: 1.5rem;
-            background: var(--background);
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-        }
-
-        #resultado h2 {
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-            font-size: 1.3rem;
-        }
-
-        .error-message {
-            color: #e74c3c;
-            font-size: 0.9rem;
-            margin-top: 0.3rem;
-            display: none;
-        }
-
-        input:invalid, select:invalid {
-            border-color: #e74c3c;
+        .result-item span:last-child {
+            font-weight: bold;
+            color: #2c3e50;
         }
 
         @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
             .container {
-                padding: 1rem;
-                margin: 1rem;
+                padding: 15px;
             }
-
+            
             h1 {
-                font-size: 1.5rem;
+                font-size: 1.8em;
             }
-
-            select, input, button {
-                font-size: 0.9rem;
-                padding: 0.7rem;
+            
+            select, input {
+                font-size: 14px;
             }
         }
 
-        @media (max-width: 480px) {
-            body {
-                padding: 0.5rem;
-                align-items: stretch;
-            }
-
-            .container {
-                border-radius: 0;
-                box-shadow: none;
-            }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Calculador de Costos de Envío</h1>
+        <h1>Calculadora de Costos de Flete</h1>
         
-        <!-- Paso 1: Tipo de envío -->
-        {% if not session.tipo_envio %}
-        <div class="form-step">
-            <form id="envioForm" method="POST" action="{{ url_for('inicio') }}">
+        <!-- Formulario Principal -->
+        <div class="form-section">
+            {% if not session.tipo_envio %}
+            <form method="POST">
                 <div class="form-group">
-                    <label for="tipo_envio">Tipo de envío:</label>
-                    <div class="select-group">
-                        <select name="tipo_envio" id="tipo_envio" required>
-                            <option value="" disabled selected>Seleccione una opción</option>
-                            <option value="bulto">Bulto</option>
-                            <option value="pallet">Pallet</option>
-                        </select>
-                    </div>
+                    <label for="tipo_envio">Tipo de Envío:</label>
+                    <select name="tipo_envio" id="tipo_envio" required>
+                        <option value="">Seleccione tipo...</option>
+                        <option value="normal">Envío Normal</option>
+                        <option value="pallet">Pallet</option>
+                    </select>
                 </div>
                 <button type="submit">Continuar</button>
             </form>
-        </div>
-        {% endif %}
-
-        <!-- Paso 2: Localidad -->
-        {% if session.tipo_envio and not session.localidad %}
-        <div class="form-step">
-            <form method="POST" action="{{ url_for('localidad') }}">
+            {% endif %}
+            
+            {% if session.tipo_envio and not session.localidad %}
+            <form method="POST">
                 <div class="form-group">
-                    <label for="localidad">Localidad de destino:</label>
-                    <div class="select-group">
-                        <select name="localidad" id="localidad" required>
-                            <option value="" disabled selected>Seleccione una localidad</option>
-                            {% for localidad in localidades %}
-                                <option value="{{ localidad }}">{{ localidad }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    <label for="localidad">Seleccione Localidad:</label>
+                    <select name="localidad" id="localidad" required>
+                        {% for localidad in localidades %}
+                        <option value="{{ localidad }}">{{ localidad }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit">Siguiente</button>
+            </form>
+            {% endif %}
+            
+            {% if session.tipo_envio == 'pallet' and session.localidad and not session.fragil %}
+            <form method="POST">
+                <div class="form-group">
+                    <label>¿Es frágil el pallet?</label>
+                    <select name="fragil" required>
+                        <option value="si">Sí</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>¿Es pesado? (+15%)</label>
+                    <select name="pesado" required>
+                        <option value="si">Sí</option>
+                        <option value="no">No</option>
+                    </select>
                 </div>
                 <button type="submit">Continuar</button>
             </form>
-        </div>
-        {% endif %}
-
-        <!-- Paso 3: Opciones para pallet -->
-        {% if session.tipo_envio == 'pallet' and session.localidad and not session.fragil %}
-        <div class="form-step">
-            <form method="POST" action="{{ url_for('pallet') }}" onsubmit="return validatePalletForm(this)">
+            {% endif %}
+            
+            {% if session.tipo_envio == 'normal' and session.localidad and not session.cantidad_bultos %}
+            <form method="POST">
                 <div class="form-group">
-                    <label>Características del pallet:</label>
-                    <div class="select-group">
-                        <select name="fragil" required>
-                            <option value="" disabled selected>¿Es frágil?</option>
-                            <option value="si">Sí</option>
-                            <option value="no">No</option>
-                        </select>
-                    </div>
-                    <div class="select-group">
-                        <select name="pesado" required>
-                            <option value="" disabled selected>¿Es pesado? (+15%)</option>
-                            <option value="si">Sí</option>
-                            <option value="no">No</option>
-                        </select>
-                    </div>
+                    <label>Cantidad de Bultos:</label>
+                    <input type="number" name="cantidad" min="1" required>
                 </div>
-                <button type="submit">Continuar</button>
+                <button type="submit">Siguiente</button>
             </form>
-        </div>
-        {% endif %}
-
-        <!-- Paso 4: Valor declarado -->
-        {% if (session.categorias or session.fragil) and not session.valor_declarado %}
-        <div class="form-step">
-            <form method="POST" action="{{ url_for('valor_declarado') }}" onsubmit="return validateValor(this)">
+            {% endif %}
+            
+            {% if session.cantidad_bultos and not session.categorias %}
+            <form method="POST">
+                {% for i in range(session.cantidad_bultos) %}
                 <div class="form-group">
-                    <label for="valor">Valor declarado de la mercancía (ARS):</label>
-                    <input type="number" step="0.01" name="valor" id="valor" 
-                           placeholder="Ingrese el valor total" required>
-                    <div class="error-message" id="valor-error">Por favor ingrese el valor de su mercadería</div>
+                    <label>Bulto {{ i+1 }}:</label>
+                    <select name="categoria" required>
+                        {% for categoria in PRECIOS[session.localidad].keys() %}
+                        <option value="{{ categoria }}">{{ categoria }}</option>
+                        {% endfor %}
+                    </select>
+                    <label>
+                        <input type="checkbox" name="pesado" value="{{ i }}"> Pesado (+15%)
+                    </label>
                 </div>
-                <button type="submit">Calcular total</button>
+                {% endfor %}
+                <button type="submit">Calcular</button>
             </form>
+            {% endif %}
+            
+            {% if not session.valor_declarado and (session.fragil is defined or session.categorias is defined) %}
+            <form method="POST">
+                <div class="form-group">
+                    <label>Valor Declarado:</label>
+                    <input type="number" step="0.01" name="valor" required>
+                </div>
+                <button type="submit">Calcular Total</button>
+            </form>
+            {% endif %}
         </div>
-        {% endif %}
 
-        <!-- Resultados -->
         {% if total %}
-        <div id="resultado">
-            <h2>Detalle del cálculo</h2>
-            <p><strong>Costo base:</strong> ${{ "%.2f"|format(total_base) }}</p>
-            <p><strong>Seguro (0.9%):</strong> ${{ "%.2f"|format(seguro) }}</p>
-            <p><strong>IVA (21%):</strong> ${{ "%.2f"|format(iva) }}</p>
-            <h2 style="margin-top: 1.5rem; color: var(--accent-color);">Total a pagar: ${{ "%.2f"|format(total) }}</h2>
+        <div class="resultados">
+            <h2>Resultado del Cálculo</h2>
+            <div class="result-item">
+                <span>Total Base:</span>
+                <span>${{ total_base }}</span>
+            </div>
+            <div class="result-item">
+                <span>Seguro (0.9%):</span>
+                <span>${{ seguro }}</span>
+            </div>
+            <div class="result-item">
+                <span>IVA (21%):</span>
+                <span>${{ iva }}</span>
+            </div>
+            <div class="result-item" style="font-size: 1.2em; color: #27ae60;">
+                <span>Total Final:</span>
+                <span>${{ total }}</span>
+            </div>
         </div>
         {% endif %}
     </div>
-
-    <script>
-        function validateValor(form) {
-            const valorInput = form.valor;
-            const errorElement = document.getElementById('valor-error');
-            
-            if (!valorInput.value || parseFloat(valorInput.value) <= 0) {
-                errorElement.style.display = 'block';
-                valorInput.focus();
-                return false;
-            }
-            errorElement.style.display = 'none';
-            return true;
-        }
-
-        // Validación para todos los formularios
-        document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', (e) => {
-                const requiredElements = form.querySelectorAll('[required]');
-                let isValid = true;
-
-                requiredElements.forEach(el => {
-                    if (!el.value) {
-                        isValid = false;
-                        el.classList.add('error');
-                    } else {
-                        el.classList.remove('error');
-                    }
-                });
-
-                if (!isValid) {
-                    e.preventDefault();
-                    alert('Por favor complete todos los campos obligatorios');
-                }
-            });
-        });
-    </script>
 </body>
 </html>
