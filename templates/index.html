@@ -149,7 +149,7 @@
 
         <!-- Resultados -->
         {% if resultado %}
-        <div class="resultado">
+        <div class="resultado" id="resultado">
             <h2>Cotización Final</h2>
             <p>Precio base: ${{ resultado.total_base }}</p>
             <p>Seguro: ${{ resultado.seguro }}</p>
@@ -194,6 +194,14 @@
             // Generar campos iniciales
             generarCampos(cantidadInput.value);
         });
+
+        // Desplazar la página hacia los resultados si existen
+        window.onload = function() {
+            const resultadoDiv = document.getElementById('resultado');
+            if (resultadoDiv) {
+                resultadoDiv.scrollIntoView({ behavior: 'smooth' });
+            }
+        };
     </script>
 </body>
 </html>
