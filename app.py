@@ -46,13 +46,15 @@ def index():
         total_base = 0
         
         for i in range(cantidad):
-            categoria = data.get(f'categoria_{i}')
             pesado = data.get(f'pesado_{i}') == 'si'
             fragil = data.get(f'fragil_{i}') == 'si'
             
             # Determinar precio base
             if tipo_envio == 'pallet':
                 categoria = "Pallet (frágil)" if fragil else "Pallet (no frágil)"
+            else:
+                categoria = data.get(f'categoria_{i}')
+            
             precio = PRECIOS[localidad][categoria]
             
             # Aplicar 15% si es pesado
