@@ -17,19 +17,19 @@ PRECIOS = {
     "Int del Chaco/Formosa": {
         "Chica": 11500, "Mediana": 15300, "Grande": 24000, "XL": 32000,
         "XXL": 39900, "M3": 113000, "Donación": 8250,
-        "Pallet (no frágil)": 113000,  # Precio base
-        "Pallet (frágil)": 113000 * 1.15  # Se le suma un 15%
+        "Pallet (no frágil)": 113000,  
+        "Pallet (frágil)": 113000 * 1.15  
     },
     "Clorinda": {
         "Chica": 15300, "Mediana": 18000, "Grande": 26600, "XL": 36600,
         "XXL": 47500, "M3": 137000, "Donación": 8250,
-        "Pallet (no frágil)": 137000,  # Precio base
-        "Pallet (frágil)": 137000 * 1.15  # Se le suma un 15%
+        "Pallet (no frágil)": 137000,  
+        "Pallet (frágil)": 137000 * 1.15  
     },
     # "Int. Formosa": {  # Comentado
     #     "Chica": 12075, "Mediana": 16065, "Grande": 25200, "XL": 33600,
     #     "XXL": 41895, "M3": 118650, "Donación": 8250
-    # }  # Comentado
+    # }  # No
 }
 
 
