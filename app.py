@@ -32,101 +32,77 @@ PRECIOS = {
 @app.route('/', methods=['GET', 'POST'])
 def index():
 resultado = None
-    error = None
+error = None
 
 if request.method == 'POST':
-        data = request.form
-        
-        # Obtener datos del formulario
-        tipo_envio = data.get('tipo_envio')
-        localidad = data.get('localidad')
-        cantidad = int(data.get('cantidad', 1))
-        valor_declarado = float(data.get('valor_declarado', 0))
-        
-        # Calcular total base
-        total_base = 0
-        
-        for i in range(cantidad):
-            pesado = data.get(f'pesado_{i}') == 'si'
-            fragil = data.get(f'fragil_{i}') == 'si'
-        try:
-            data = request.form
+try:
+data = request.form
 
-            # Determinar precio base
-            if tipo_envio == 'pallet':
-                categoria = "Pallet (frágil)" if fragil else "Pallet (no frágil)"
-            else:
-                categoria = data.get(f'categoria_{i}')
+            # Validar campos básicos
             # Validar datos del formulario
-            tipo_envio = data.get('tipo_envio')
-            localidad = data.get('localidad')
-            cantidad = int(data.get('cantidad', 1))
-            valor_declarado = float(data.get('valor_declarado', 0))
+tipo_envio = data.get('tipo_envio')
+localidad = data.get('localidad')
+cantidad = int(data.get('cantidad', 1))
+valor_declarado = float(data.get('valor_declarado', 0))
 
-            if not tipo_envio or not localidad or cantidad <= 0 or valor_declarado < 0:
+if not tipo_envio or not localidad or cantidad <= 0 or valor_declarado < 0:
+                raise ValueError("Complete todos los campos correctamente")
                 raise ValueError("Datos del formulario incompletos o inválidos.")
 
-            precio = PRECIOS[localidad][categoria]
             # Calcular total base
-            total_base = 0
+total_base = 0
 
-            # Aplicar 15% si es pesado
-            if pesado:
-                precio *= 1.15
-            for i in range(cantidad):
-                pesado = data.get(f'pesado_{i}') == 'si'
-                fragil = data.get(f'fragil_{i}') == 'si'
-                
+            # Procesar cada bulto/pallet
+for i in range(cantidad):
+pesado = data.get(f'pesado_{i}') == 'si'
+fragil = data.get(f'fragil_{i}') == 'si'
+
+                # Lógica para pallets
                 # Determinar precio base
-                if tipo_envio == 'pallet':
-                    categoria = "Pallet (frágil)" if fragil else "Pallet (no frágil)"
-                else:
-                    categoria = data.get(f'categoria_{i}')
-                
-                if categoria not in PRECIOS[localidad]:
-                    raise ValueError(f"Categoría '{categoria}' no válida para la localidad seleccionada.")
-                
-                precio = PRECIOS[localidad][categoria]
+if tipo_envio == 'pallet':
+categoria = "Pallet (frágil)" if fragil else "Pallet (no frágil)"
+                # Lógica para bultos
+else:
+categoria = data.get(f'categoria_{i}')
+                    if not categoria:
+                        raise ValueError(f"Seleccione categoría para el bulto {i+1}")
 
-            total_base += precio
-        
-        # Calcular total final
-        seguro = valor_declarado * 0.009
-        iva = (total_base + seguro) * 0.21
-        total = total_base + seguro + iva
-        
-        resultado = {
-            'total_base': round(total_base, 2),
-            'seguro': round(seguro, 2),
-            'iva': round(iva, 2),
-            'total': round(total, 2)
-        }
+if categoria not in PRECIOS[localidad]:
+                    raise ValueError(f"Categoría '{categoria}' no existe en {localidad}")
+                    raise ValueError(f"Categoría '{categoria}' no válida para la localidad seleccionada.")
+
+precio = PRECIOS[localidad][categoria]
+
+                # Aplicar recargo por peso
                 # Aplicar 15% si es pesado
-                if pesado:
-                    precio *= 1.15
+if pesado:
+precio *= 1.15
+                
                     
-                total_base += precio
+total_base += precio
+
+            # Cálculos finales
             
             # Calcular total final
-            seguro = valor_declarado * 0.009
-            iva = (total_base + seguro) * 0.21
-            total = total_base + seguro + iva
-            
-            resultado = {
-                'total_base': round(total_base, 2),
-                'seguro': round(seguro, 2),
-                'iva': round(iva, 2),
-                'total': round(total, 2)
-            }
+seguro = valor_declarado * 0.009
+iva = (total_base + seguro) * 0.21
+total = total_base + seguro + iva
 
-        except Exception as e:
+resultado = {
+'total_base': round(total_base, 2),
+'seguro': round(seguro, 2),
+'iva': round(iva, 2),
+'total': round(total, 2)
+}
+
+except Exception as e:
+            error = f"Error: {str(e)}"
             error = f"Error al calcular la cotización: {str(e)}"
             print(error)  # Log del error en la consola
 
 return render_template(
 'index.html',
 localidades=PRECIOS.keys(),
-        resultado=resultado
-        resultado=resultado,
-        error=error
+resultado=resultado,
+error=error
 )
