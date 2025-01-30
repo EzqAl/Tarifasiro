@@ -41,24 +41,38 @@ def index():
             cantidad = int(data.get('cantidad', 1))
             valor_declarado = float(data.get('valor_declarado', 0))
 
+            # Validaciones básicas
             if not tipo_envio or not localidad or cantidad <= 0 or valor_declarado < 0:
-                raise ValueError("Complete todos los campos")
-
+                raise ValueError("Complete todos los campos correctamente.")
+            
             total_base = 0
+            
+            # Procesar cada ítem
             for i in range(cantidad):
-                # Campos dinámicos para cada bulto/pallet
                 pesado = data.get(f'pesado_{i}') == 'si'
                 fragil = data.get(f'fragil_{i}') == 'si'
-                categoria = data.get(f'categoria_{i}') if tipo_envio == 'bultos' else ("Pallet (frágil)" if fragil else "Pallet (no frágil)")
+                
+                # Determinar categoría
+                if tipo_envio == 'pallet':
+                    categoria = "Pallet (frágil)" if fragil else "Pallet (no frágil)"
+                else:
+                    categoria = data.get(f'categoria_{i}')
+                    if not categoria:
+                        raise ValueError(f"Falta categoría en el ítem {i + 1}")
 
+                # Validar categoría
                 if categoria not in PRECIOS[localidad]:
-                    raise ValueError(f"Categoría inválida: {categoria} en {localidad}")
-
+                    raise ValueError(f"Categoría '{categoria}' no existe en {localidad}")
+                
                 precio = PRECIOS[localidad][categoria]
+                
+                # Aplicar recargo por peso
                 if pesado:
                     precio *= 1.15
+                
                 total_base += precio
 
+            # Cálculos finales
             seguro = valor_declarado * 0.009
             iva = (total_base + seguro) * 0.21
             total = total_base + seguro + iva
@@ -73,7 +87,13 @@ def index():
         except Exception as e:
             error = f"Error: {str(e)}"
 
-    return render_template('index.html', localidades=PRECIOS.keys(), resultado=resultado, error=error)
+    return render_template(
+        'index.html',
+        PRECIOS=PRECIOS,
+        localidades=PRECIOS.keys(),
+        resultado=resultado,
+        error=error
+    )
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000, debug=False)
