@@ -46,7 +46,8 @@ def index():
         session['current_step'] = 'localidad'
         return redirect(url_for('handle_steps'))
     
-    return render_template('index.html')
+    # Pasar valores predeterminados para evitar errores en el HTML
+    return render_template('index.html', total_base=0, seguro=0, iva=0, total=0)
 
 @app.route('/handle_steps', methods=['GET', 'POST'])
 def handle_steps():
@@ -57,7 +58,7 @@ def handle_steps():
             session['localidad'] = request.form['localidad']
             session['current_step'] = 'pallet' if session['tipo_envio'] == 'pallet' else 'cantidad_bultos'
             return redirect(url_for('handle_steps'))
-        return render_template('index.html')
+        return render_template('index.html', total_base=0, seguro=0, iva=0, total=0)
     
     elif current_step == 'pallet':
         if request.method == 'POST':
@@ -65,14 +66,14 @@ def handle_steps():
             session['pesado'] = request.form.get('pesado') == 'si'
             session['current_step'] = 'valor_declarado'
             return redirect(url_for('handle_steps'))
-        return render_template('index.html')
+        return render_template('index.html', total_base=0, seguro=0, iva=0, total=0)
     
     elif current_step == 'cantidad_bultos':
         if request.method == 'POST':
             session['cantidad_bultos'] = int(request.form['cantidad'])
             session['current_step'] = 'seleccion_categorias'
             return redirect(url_for('handle_steps'))
-        return render_template('index.html')
+        return render_template('index.html', total_base=0, seguro=0, iva=0, total=0)
     
     elif current_step == 'seleccion_categorias':
         if request.method == 'POST':
@@ -80,23 +81,44 @@ def handle_steps():
             session['pesado'] = [str(i) in request.form.getlist('pesado') for i in range(session['cantidad_bultos'])]
             session['current_step'] = 'valor_declarado'
             return redirect(url_for('handle_steps'))
-        return render_template('index.html')
+        return render_template('index.html', total_base=0, seguro=0, iva=0, total=0)
     
     elif current_step == 'valor_declarado':
         if request.method == 'POST':
             session['valor_declarado'] = float(request.form['valor'])
             session['current_step'] = 'resultado'
             return redirect(url_for('handle_steps'))
-        return render_template('index.html')
+        return render_template('index.html', total_base=0, seguro=0, iva=0, total=0)
     
     elif current_step == 'resultado':
         try:
             localidad = session['localidad']
-            categorias = session['categorias']
             valor_declarado = session['valor_declarado']
             
-            total_base = sum(PRECIOS[localidad][categoria] for categoria in categorias)
-            seguro = valor_declarado * 0.009
+            # Lógica diferenciada para pallet vs bultos
+            if session['tipo_envio'] == 'pallet':
+                categoria_pallet = "Pallet (frágil)" if session.get('fragil') else "Pallet (no frágil)"
+                precio_base = PRECIOS[localidad][categoria_pallet]
+                
+                # Aplicar 15% si es pesado
+                if session.get('pesado'):
+                    precio_base *= 1.15
+                
+                total_base = precio_base
+            
+            else:  # Bultos
+                total_base = 0
+                for i, categoria in enumerate(session['categorias']):
+                    precio = PRECIOS[localidad][categoria]
+                    
+                    # Aplicar 15% si el bulto está marcado como pesado
+                    if session['pesado'][i]:
+                        precio *= 1.15
+                    
+                    total_base += precio
+            
+            # Resto del cálculo (seguro, IVA)
+            seguro = valor_declarado * 0.009  # Asumiendo que es en USD
             iva = (total_base + seguro) * 0.21
             total = total_base + seguro + iva
             
@@ -104,9 +126,9 @@ def handle_steps():
                 'total_base': total_base,
                 'seguro': seguro,
                 'iva': iva,
-                'total': total
+                'total': total,
+                'step': 'resultado'  # Asegúrate de definir el paso actual
             }
-            
             return render_template('index.html', **context)
         except KeyError as e:
             print(f"Error: {str(e)}")
