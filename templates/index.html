@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cotizador Logístico</title>
 <style>
-/* Estilos modernos y profesionales */
+        /* Estilos modernos y profesionales */
 :root {
 --primary: #2c3e50;
 --secondary: #3498db;
@@ -77,33 +77,190 @@ border-radius: 5px;
 margin-top: 30px;
 }
 
-.resultado h2 {
-margin-top: 0;
-}
-
-        .error {
-            background: #ffebee;
-            color: #c62828;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-            border: 1px solid #c62828;
+        .resultado h2 {
+            margin-top: 0;
         }
 
-.hidden {
-display: none;
+.error {
+background: #ffebee;
+color: #c62828;
+padding: 15px;
+border-radius: 5px;
+margin-top: 20px;
+border: 1px solid #c62828;
 }
-@@ -131,6 +140,13 @@
-<button type="submit">Calcular Cotización</button>
+
+        .hidden {
+            display: none;
+        }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Cotizador Logístico</h1>
+<form method="POST" id="cotizadorForm">
+            <!-- Tipo de Envío -->
+            <!-- Tipo de Mercadería -->
+<div class="form-group">
+<label>Tipo de Mercadería</label>
+                <select name="tipo_envio" id="tipoEnvio" required>
+                    <option value="">Seleccione</option>
+                <select name="tipo_envio" required>
+                    <option value="">Seleccione tipo</option>
+<option value="pallet">Pallet</option>
+<option value="bultos">Bultos/Cajas</option>
+</select>
+</div>
+
+<!-- Destino -->
+<div class="form-group">
+<label>Destino</label>
+<select name="localidad" required>
+                    <option value="">Seleccione</option>
+                    <option value="">Seleccione destino</option>
+{% for loc in localidades %}
+<option value="{{ loc }}">{{ loc }}</option>
+{% endfor %}
+</select>
+</div>
+
+            <!-- Cantidad -->
+            <!-- Cantidad de Bultos/Cajas/Pallets -->
+<div class="form-group">
+                <label>Cantidad</label>
+                <label>Cantidad de Bultos, Cajas o Pallets</label>
+<input type="number" name="cantidad" min="1" value="1" required>
+</div>
+
+            <!-- Campos Dinámicos -->
+            <div id="detalles"></div>
+            <!-- Detalles por Bulto/Caja/Pallet -->
+            <div id="detalles_bultos">
+                <!-- Campos dinámicos se generan aquí -->
+            </div>
+
+<!-- Valor Declarado -->
+<div class="form-group">
+<label>Valor Declarado</label>
+                <input type="number" step="0.01" name="valor_declarado" required>
+                <input type="number" step="0.01" name="valor_declarado" required placeholder="Ingrese valor">
+</div>
+
+            <button type="submit">Calcular</button>
+            <button type="submit">Calcular Cotización</button>
 </form>
 
+        <!-- Mensajes de Error -->
         <!-- Mostrar errores -->
-        {% if error %}
+{% if error %}
+        <div class="error">{{ error }}</div>
         <div class="error">
             <strong>Error:</strong> {{ error }}
         </div>
-        {% endif %}
+{% endif %}
 
 <!-- Resultados -->
 {% if resultado %}
-<div class="resultado">
+        <div class="resultado" id="resultado">
+            <h2>Cotización</h2>
+            <p>Base: ${{ resultado.total_base }}</p>
+        <div class="resultado">
+            <h2>Cotización Final</h2>
+            <p>Precio base: ${{ resultado.total_base }}</p>
+<p>Seguro: ${{ resultado.seguro }}</p>
+<p>IVA: ${{ resultado.iva }}</p>
+<h3>Total: ${{ resultado.total }}</h3>
+<button onclick="location.reload()">Nueva Cotización</button>
+</div>
+{% endif %}
+</div>
+
+<script>
+        // Generar campos dinámicos
+        document.addEventListener('DOMContentLoaded', () => {
+            const tipoEnvio = document.getElementById('tipoEnvio');
+            const cantidad = document.querySelector('input[name="cantidad"]');
+            const contenedor = document.getElementById('detalles');
+
+            const generarCampos = () => {
+                const tipo = tipoEnvio.value;
+                const num = parseInt(cantidad.value) || 1;
+                contenedor.innerHTML = '';
+
+                for (let i = 0; i < num; i++) {
+                    let html = `
+        // Generar campos dinámicos para bultos/cajas/pallets
+        document.addEventListener('DOMContentLoaded', function() {
+            const cantidadInput = document.querySelector('input[name="cantidad"]');
+            const detallesDiv = document.getElementById('detalles_bultos');
+
+            function generarCampos(cantidad) {
+                detallesDiv.innerHTML = '';
+                for (let i = 0; i < cantidad; i++) {
+                    detallesDiv.innerHTML += `
+                       <div class="form-group">
+                            <h3>${tipo === 'pallet' ? 'Pallet' : 'Bulto'} ${i + 1}</h3>
+                            <label>Pesado</label>
+                            <h3>Bulto/Caja/Pallet ${i + 1}</h3>
+                            <label>Pesado/Liviano</label>
+                           <select name="pesado_${i}" required>
+                                <option value="si">Sí</option>
+                                <option value="no">No</option>
+                                <option value="si">Pesado</option>
+                                <option value="no">Liviano</option>
+                           </select>
+                            <label>Frágil</label>
+                            <label>Frágil/No Frágil</label>
+                           <select name="fragil_${i}" required>
+                                <option value="si">Sí</option>
+                                <option value="no">No</option>
+                                <option value="si">Frágil</option>
+                                <option value="no">No Frágil</option>
+                           </select>
+                        </div>
+                   `;
+
+                    if (tipo === 'bultos') {
+                        html += `
+                            <label>Categoría</label>
+                            <select name="categoria_${i}" required>
+                                {% for loc in localidades %}
+                                    {% if loop.first %}
+                                        {% for cat in PRECIOS[loc].keys() %}
+                                            {% if not cat.startswith('Pallet') %}
+                                                <option value="{{ cat }}">{{ cat }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        `;
+                    }
+
+                    html += '</div>';
+                    contenedor.innerHTML += html;
+}
+            };
+            }
+
+            tipoEnvio.addEventListener('change', generarCampos);
+            cantidad.addEventListener('input', generarCampos);
+            generarCampos();
+        });
+            cantidadInput.addEventListener('input', function() {
+                generarCampos(this.value);
+            });
+
+        // Desplazamiento automático
+        window.onload = () => {
+            const resultado = document.getElementById('resultado');
+            if (resultado) {
+                resultado.scrollIntoView({ behavior: 'smooth' });
+            }
+        };
+            // Generar campos iniciales
+            generarCampos(cantidadInput.value);
+        });
+</script>
+</body>
+</html>
