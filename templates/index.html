@@ -251,15 +251,19 @@
                 <div class="grid">
                     <div>
                         <h3>Detalles del Cálculo</h3>
-                        <p>Precio base: ${{ "%.2f"|format(total_base) }}</p>
-                        <p>Seguro (0.9%): ${{ "%.2f"|format(seguro) }}</p>
-                        <p>IVA (21%): ${{ "%.2f"|format(iva) }}</p>
+                        {% if total_base is defined %}
+                            <p>Precio base: ${{ "%.2f"|format(total_base) }}</p>
+                            <p>Seguro (0.9%): ${{ "%.2f"|format(seguro) }}</p>
+                            <p>IVA (21%): ${{ "%.2f"|format(iva) }}</p>
+                        {% endif %}
                     </div>
                     <div>
                         <h3>Total Estimado</h3>
-                        <p style="font-size: 1.5rem; color: var(--secondary);">
-                            ${{ "%.2f"|format(total) }}
-                        </p>
+                        {% if total is defined %}
+                            <p style="font-size: 1.5rem; color: var(--secondary);">
+                                ${{ "%.2f"|format(total) }}
+                            </p>
+                        {% endif %}
                     </div>
                 </div>
                 
