@@ -43,7 +43,7 @@ def index():
             valor_declarado = float(data.get('valor_declarado', 0))
 
             if not tipo_envio or not localidad or cantidad <= 0 or valor_declarado < 0:
-                raise ValueError("Datos inválidos")
+                raise ValueError("Complete todos los campos correctamente")
             
             total_base = 0
             
@@ -62,7 +62,7 @@ def index():
                     precio *= 1.15
                     
                 total_base += precio
-            
+
             seguro = valor_declarado * 0.009
             iva = (total_base + seguro) * 0.21
             total = total_base + seguro + iva
