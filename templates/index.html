@@ -3,28 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cotizador</title>
+    <title>Cotizador Logístico</title>
     <style>
         :root {
             --primary: #2c3e50;
             --secondary: #3498db;
+            --light: #ecf0f1;
         }
         body {
             font-family: 'Segoe UI', sans-serif;
+            background: #f5f6fa;
             margin: 0;
             padding: 20px;
-            background: #f5f6fa;
         }
         .container {
             max-width: 800px;
             margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .form-group {
             margin-bottom: 20px;
         }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
         select, input {
             width: 100%;
             padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
             margin-top: 5px;
         }
         button {
@@ -34,23 +47,31 @@
             padding: 12px 25px;
             border-radius: 5px;
             cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #2980b9;
         }
         .resultado {
-            margin-top: 30px;
-            padding: 20px;
             background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 30px;
         }
         .error {
-            color: #c62828;
             background: #ffebee;
+            color: #c62828;
             padding: 15px;
             margin-top: 20px;
+            border: 1px solid #c62828;
+            border-radius: 5px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Cotizador</h1>
+        <h1>Cotizador Logístico</h1>
         <form method="POST" id="cotizadorForm">
             <!-- Tipo de Envío -->
             <div class="form-group">
@@ -91,7 +112,7 @@
             <button type="submit">Calcular</button>
         </form>
 
-        <!-- Errores -->
+        <!-- Mensajes de Error -->
         {% if error %}
         <div class="error">{{ error }}</div>
         {% endif %}
@@ -99,7 +120,11 @@
         <!-- Resultados -->
         {% if resultado %}
         <div class="resultado" id="resultado">
-            <h2>Total: ${{ resultado.total }}</h2>
+            <h2>Cotización Final</h2>
+            <p>Precio base: ${{ resultado.total_base }}</p>
+            <p>Seguro: ${{ resultado.seguro }}</p>
+            <p>IVA: ${{ resultado.iva }}</p>
+            <h3>Total: ${{ resultado.total }}</h3>
             <button onclick="nuevaCotizacion()">Nueva Cotización</button>
         </div>
         {% endif %}
@@ -114,7 +139,7 @@
             for (let i = 0; i < cantidad; i++) {
                 let html = `
                     <div class="form-group">
-                        <h3>${tipo === 'pallet' ? 'Pallet' : 'Bulto'} ${i + 1}</h3>
+                        <h3>${tipo === 'pallet' ? 'Pallet' : 'Bulto/Caja'} ${i + 1}</h3>
                         <label>Pesado (+15%)</label>
                         <select name="pesado_${i}" required>
                             <option value="si">Sí</option>
@@ -134,7 +159,7 @@
                             {% for loc in localidades %}
                                 {% if loop.first %}
                                     {% for cat in PRECIOS[loc].keys() %}
-                                        {% if not cat.includes('Pallet') %}
+                                        {% if 'Pallet' not in cat %}
                                             <option value="{{ cat }}">{{ cat }}</option>
                                         {% endif %}
                                     {% endfor %}
