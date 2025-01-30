@@ -1,72 +1,176 @@
-<!-- Scripts modificados -->
-<script>
-    // Generar campos dinámicos
-    function generarCampos(cantidad, tipo) {
-        const contenedor = document.getElementById('detalles');
-        contenedor.innerHTML = '';
-        
-        for (let i = 0; i < cantidad; i++) {
-            let html = `
-                <div class="form-group">
-                    <h3>${tipo === 'pallet' ? 'Pallet' : 'Bulto/Caja'} ${i + 1}</h3>
-                    <label>Pesado</label>
-                    <select name="pesado_${i}" required>
-                        <option value="si">Sí</option>
-                        <option value="no">No</option>
-                    </select>
-                    <label>Frágil</label>
-                    <select name="fragil_${i}" required>
-                        <option value="si">Sí</option>
-                        <option value="no">No</option>
-                    </select>
-            `;
-
-            if (tipo === 'bultos') {
-                html += `
-                    <label>Categoría</label>
-                    <select name="categoria_${i}" required>
-                        {% for loc in localidades %}
-                            {% if loop.first %}
-                                {% for cat in PRECIOS[loc].keys() %}
-                                    {% if not cat.startswith('Pallet') %}
-                                        <option value="{{ cat }}">{{ cat }}</option>
-                                    {% endif %}
-                                {% endfor %}
-                            {% endif %}
-                        {% endfor %}
-                    </select>
-                `;
-            }
-
-            html += '</div>';
-            contenedor.innerHTML += html;
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotizador</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
         }
-    }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f6fa;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+        }
+        button {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .resultado {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .error {
+            color: #c62828;
+            background: #ffebee;
+            padding: 15px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cotizador</h1>
+        <form method="POST" id="cotizadorForm">
+            <!-- Tipo de Envío -->
+            <div class="form-group">
+                <label>Tipo de Mercadería</label>
+                <select name="tipo_envio" id="tipoEnvio" required>
+                    <option value="">Seleccione</option>
+                    <option value="pallet">Pallet</option>
+                    <option value="bultos">Bultos/Cajas</option>
+                </select>
+            </div>
 
-    // Eventos
-    document.addEventListener('DOMContentLoaded', () => {
-        const tipoEnvio = document.querySelector('select[name="tipo_envio"]');
-        const cantidad = document.querySelector('input[name="cantidad"]');
-        
-        tipoEnvio.addEventListener('change', () => {
-            generarCampos(cantidad.value, tipoEnvio.value);
+            <!-- Destino -->
+            <div class="form-group">
+                <label>Destino</label>
+                <select name="localidad" required>
+                    <option value="">Seleccione</option>
+                    {% for loc in localidades %}
+                        <option value="{{ loc }}">{{ loc }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Cantidad -->
+            <div class="form-group">
+                <label>Cantidad</label>
+                <input type="number" name="cantidad" id="cantidad" min="1" value="1" required>
+            </div>
+
+            <!-- Campos Dinámicos -->
+            <div id="detalles"></div>
+
+            <!-- Valor Declarado -->
+            <div class="form-group">
+                <label>Valor Declarado</label>
+                <input type="number" step="0.01" name="valor_declarado" required>
+            </div>
+
+            <button type="submit">Calcular</button>
+        </form>
+
+        <!-- Errores -->
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <!-- Resultados -->
+        {% if resultado %}
+        <div class="resultado" id="resultado">
+            <h2>Total: ${{ resultado.total }}</h2>
+            <button onclick="nuevaCotizacion()">Nueva Cotización</button>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Generar campos dinámicos
+        function generarCampos(cantidad, tipo) {
+            const contenedor = document.getElementById('detalles');
+            contenedor.innerHTML = '';
+            
+            for (let i = 0; i < cantidad; i++) {
+                let html = `
+                    <div class="form-group">
+                        <h3>${tipo === 'pallet' ? 'Pallet' : 'Bulto'} ${i + 1}</h3>
+                        <label>Pesado (+15%)</label>
+                        <select name="pesado_${i}" required>
+                            <option value="si">Sí</option>
+                            <option value="no">No</option>
+                        </select>
+                        <label>Frágil</label>
+                        <select name="fragil_${i}" required>
+                            <option value="si">Sí</option>
+                            <option value="no">No</option>
+                        </select>
+                `;
+
+                if (tipo === 'bultos') {
+                    html += `
+                        <label>Tamaño</label>
+                        <select name="categoria_${i}" required>
+                            {% for loc in localidades %}
+                                {% if loop.first %}
+                                    {% for cat in PRECIOS[loc].keys() %}
+                                        {% if not cat.includes('Pallet') %}
+                                            <option value="{{ cat }}">{{ cat }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    `;
+                }
+
+                html += '</div>';
+                contenedor.innerHTML += html;
+            }
+        }
+
+        // Eventos
+        document.addEventListener('DOMContentLoaded', () => {
+            const tipoEnvio = document.getElementById('tipoEnvio');
+            const cantidad = document.getElementById('cantidad');
+            
+            tipoEnvio.addEventListener('change', () => {
+                generarCampos(cantidad.value, tipoEnvio.value);
+            });
+
+            cantidad.addEventListener('input', () => {
+                generarCampos(cantidad.value, tipoEnvio.value);
+            });
+
+            generarCampos(1, tipoEnvio.value); // Inicializar
         });
 
-        cantidad.addEventListener('input', () => {
-            generarCampos(cantidad.value, tipoEnvio.value);
-        });
-
-        // Campos iniciales
-        generarCampos(1, tipoEnvio.value);
-    });
-
-    // Nueva Cotización (scroll + reset)
-    function nuevaCotizacion() {
-        document.getElementById('cotizadorForm').reset();
-        generarCampos(1, document.querySelector('select[name="tipo_envio"]').value);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-</script>
-
-<!-- Botón modificado -->
-<button onclick="nuevaCotizacion()">Nueva Cotización</button>
+        // Nueva Cotización
+        function nuevaCotizacion() {
+            document.getElementById('cotizadorForm').reset();
+            generarCampos(1, document.getElementById('tipoEnvio').value);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
