@@ -1,85 +1,85 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cotizador Logístico</title>
-    <style>
-        /* Estilos modernos y profesionales */
-        :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --light: #ecf0f1;
-            --dark: #2c3e50;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cotizador Logístico</title>
+<style>
+/* Estilos modernos y profesionales */
+:root {
+--primary: #2c3e50;
+--secondary: #3498db;
+--light: #ecf0f1;
+--dark: #2c3e50;
+}
 
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f5f6fa;
-            color: var(--dark);
-            margin: 0;
-            padding: 20px;
-        }
+body {
+font-family: 'Segoe UI', sans-serif;
+background: #f5f6fa;
+color: var(--dark);
+margin: 0;
+padding: 20px;
+}
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-        }
+.container {
+max-width: 800px;
+margin: 0 auto;
+background: white;
+border-radius: 10px;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+padding: 30px;
+}
 
-        h1, h2 {
-            color: var(--primary);
-            margin-bottom: 20px;
-        }
+h1, h2 {
+color: var(--primary);
+margin-bottom: 20px;
+}
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+.form-group {
+margin-bottom: 20px;
+}
 
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
+label {
+display: block;
+font-weight: 600;
+margin-bottom: 8px;
+}
 
-        select, input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-            margin-top: 5px;
-        }
+select, input {
+width: 100%;
+padding: 10px;
+border: 2px solid #ddd;
+border-radius: 5px;
+font-size: 16px;
+margin-top: 5px;
+}
 
-        button {
-            background: var(--secondary);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s;
-            margin-top: 20px;
-        }
+button {
+background: var(--secondary);
+color: white;
+border: none;
+padding: 12px 25px;
+border-radius: 5px;
+cursor: pointer;
+font-size: 16px;
+transition: background 0.3s;
+margin-top: 20px;
+}
 
-        button:hover {
-            background: #2980b9;
-        }
+button:hover {
+background: #2980b9;
+}
 
-        .resultado {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 5px;
-            margin-top: 30px;
-        }
+.resultado {
+background: #f8f9fa;
+padding: 20px;
+border-radius: 5px;
+margin-top: 30px;
+}
 
-        .resultado h2 {
-            margin-top: 0;
-        }
+.resultado h2 {
+margin-top: 0;
+}
 
         .error {
             background: #ffebee;
@@ -90,55 +90,12 @@
             border: 1px solid #c62828;
         }
 
-        .hidden {
-            display: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Cotizador Logístico</h1>
-        <form method="POST" id="cotizadorForm">
-            <!-- Tipo de Mercadería -->
-            <div class="form-group">
-                <label>Tipo de Mercadería</label>
-                <select name="tipo_envio" required>
-                    <option value="">Seleccione tipo</option>
-                    <option value="pallet">Pallet</option>
-                    <option value="bultos">Bultos/Cajas</option>
-                </select>
-            </div>
-
-            <!-- Destino -->
-            <div class="form-group">
-                <label>Destino</label>
-                <select name="localidad" required>
-                    <option value="">Seleccione destino</option>
-                    {% for loc in localidades %}
-                        <option value="{{ loc }}">{{ loc }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Cantidad de Bultos/Cajas/Pallets -->
-            <div class="form-group">
-                <label>Cantidad de Bultos, Cajas o Pallets</label>
-                <input type="number" name="cantidad" min="1" value="1" required>
-            </div>
-
-            <!-- Detalles por Bulto/Caja/Pallet -->
-            <div id="detalles_bultos">
-                <!-- Campos dinámicos se generan aquí -->
-            </div>
-
-            <!-- Valor Declarado -->
-            <div class="form-group">
-                <label>Valor Declarado</label>
-                <input type="number" step="0.01" name="valor_declarado" required placeholder="Ingrese valor">
-            </div>
-
-            <button type="submit">Calcular Cotización</button>
-        </form>
+.hidden {
+display: none;
+}
+@@ -131,6 +140,13 @@
+<button type="submit">Calcular Cotización</button>
+</form>
 
         <!-- Mostrar errores -->
         {% if error %}
@@ -147,53 +104,6 @@
         </div>
         {% endif %}
 
-        <!-- Resultados -->
-        {% if resultado %}
-        <div class="resultado">
-            <h2>Cotización Final</h2>
-            <p>Precio base: ${{ resultado.total_base }}</p>
-            <p>Seguro: ${{ resultado.seguro }}</p>
-            <p>IVA: ${{ resultado.iva }}</p>
-            <h3>Total: ${{ resultado.total }}</h3>
-            <button onclick="location.reload()">Nueva Cotización</button>
-        </div>
-        {% endif %}
-    </div>
-
-    <script>
-        // Generar campos dinámicos para bultos/cajas/pallets
-        document.addEventListener('DOMContentLoaded', function() {
-            const cantidadInput = document.querySelector('input[name="cantidad"]');
-            const detallesDiv = document.getElementById('detalles_bultos');
-
-            function generarCampos(cantidad) {
-                detallesDiv.innerHTML = '';
-                for (let i = 0; i < cantidad; i++) {
-                    detallesDiv.innerHTML += `
-                        <div class="form-group">
-                            <h3>Bulto/Caja/Pallet ${i + 1}</h3>
-                            <label>Pesado/Liviano</label>
-                            <select name="pesado_${i}" required>
-                                <option value="si">Pesado</option>
-                                <option value="no">Liviano</option>
-                            </select>
-                            <label>Frágil/No Frágil</label>
-                            <select name="fragil_${i}" required>
-                                <option value="si">Frágil</option>
-                                <option value="no">No Frágil</option>
-                            </select>
-                        </div>
-                    `;
-                }
-            }
-
-            cantidadInput.addEventListener('input', function() {
-                generarCampos(this.value);
-            });
-
-            // Generar campos iniciales
-            generarCampos(cantidadInput.value);
-        });
-    </script>
-</body>
-</html>
+<!-- Resultados -->
+{% if resultado %}
+<div class="resultado">
