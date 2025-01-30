@@ -81,6 +81,15 @@
             margin-top: 0;
         }
 
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border: 1px solid #c62828;
+        }
+
         .hidden {
             display: none;
         }
@@ -130,6 +139,13 @@
 
             <button type="submit">Calcular Cotización</button>
         </form>
+
+        <!-- Mostrar errores -->
+        {% if error %}
+        <div class="error">
+            <strong>Error:</strong> {{ error }}
+        </div>
+        {% endif %}
 
         <!-- Resultados -->
         {% if resultado %}
