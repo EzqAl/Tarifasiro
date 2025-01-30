@@ -3,7 +3,6 @@ from flask import Flask, render_template, request
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
-# Precios definidos para cada localidad
 PRECIOS = {
     "Resistencia/Ctes Cap": {
         "Chica": 7500, "Mediana": 9700, "Grande": 19400, "XL": 27500,
@@ -38,40 +37,43 @@ def index():
         try:
             data = request.form
             
-            # Validar datos del formulario
+            # Validar campos básicos
             tipo_envio = data.get('tipo_envio')
             localidad = data.get('localidad')
             cantidad = int(data.get('cantidad', 1))
             valor_declarado = float(data.get('valor_declarado', 0))
 
             if not tipo_envio or not localidad or cantidad <= 0 or valor_declarado < 0:
-                raise ValueError("Datos del formulario incompletos o inválidos.")
+                raise ValueError("Complete todos los campos correctamente")
             
-            # Calcular total base
             total_base = 0
             
+            # Procesar cada bulto/pallet
             for i in range(cantidad):
                 pesado = data.get(f'pesado_{i}') == 'si'
                 fragil = data.get(f'fragil_{i}') == 'si'
                 
-                # Determinar precio base
+                # Lógica para pallets
                 if tipo_envio == 'pallet':
                     categoria = "Pallet (frágil)" if fragil else "Pallet (no frágil)"
+                # Lógica para bultos
                 else:
                     categoria = data.get(f'categoria_{i}')
+                    if not categoria:
+                        raise ValueError(f"Seleccione categoría para el bulto {i+1}")
                 
                 if categoria not in PRECIOS[localidad]:
-                    raise ValueError(f"Categoría '{categoria}' no válida para la localidad seleccionada.")
+                    raise ValueError(f"Categoría '{categoria}' no existe en {localidad}")
                 
                 precio = PRECIOS[localidad][categoria]
                 
-                # Aplicar 15% si es pesado
+                # Aplicar recargo por peso
                 if pesado:
                     precio *= 1.15
-                    
+                
                 total_base += precio
-            
-            # Calcular total final
+
+            # Cálculos finales
             seguro = valor_declarado * 0.009
             iva = (total_base + seguro) * 0.21
             total = total_base + seguro + iva
@@ -84,8 +86,7 @@ def index():
             }
 
         except Exception as e:
-            error = f"Error al calcular la cotización: {str(e)}"
-            print(error)  # Log del error en la consola
+            error = f"Error: {str(e)}"
 
     return render_template(
         'index.html',
