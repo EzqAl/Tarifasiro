@@ -1,140 +1,30 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cotizador Logístico</title>
-    <style>
-        :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --light: #ecf0f1;
-            --dark: #2c3e50;
-        }
-
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f5f6fa;
-            color: var(--dark);
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-        }
-
-        h1, h2 {
-            color: var(--primary);
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        select, input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-            margin-top: 5px;
-        }
-
-        button {
-            background: var(--secondary);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background 0.3s;
-            margin-top: 20px;
-        }
-
-        button:hover {
-            background: #2980b9;
-        }
-
-        .resultado {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 5px;
-            margin-top: 30px;
-        }
-
-        .error {
-            background: #ffebee;
-            color: #c62828;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-            border: 1px solid #c62828;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Cotizador Logístico</h1>
-        <form method="POST" id="cotizadorForm">
-            <!-- Tipo de Envío -->
-            <div class="form-group">
-                <label>Tipo de Mercadería</label>
-                <select name="tipo_envio" required>
-                    <option value="">Seleccione</option>
-                    <option value="pallet">Pallet</option>
-                    <option value="bultos">Bultos/Cajas</option>
-                </select>
-            </div>
-
-            <!-- Destino -->
-            <div class="form-group">
-                <label>Destino</label>
-                <select name="localidad" required>
-                    <option value="">Seleccione</option>
-                    {% for loc in localidades %}
-                        <option value="{{ loc }}">{{ loc }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Cantidad -->
-            <div class="form-group">
-                <label>Cantidad</label>
-                <input type="number" name="cantidad" min="1" value="1" required>
-            </div>
-
-            <!-- Campos Dinámicos -->
-            <div id="detalles">
-                {% for i in range(1) %}
+<!-- Scripts modificados -->
+<script>
+    // Generar campos dinámicos
+    function generarCampos(cantidad, tipo) {
+        const contenedor = document.getElementById('detalles');
+        contenedor.innerHTML = '';
+        
+        for (let i = 0; i < cantidad; i++) {
+            let html = `
                 <div class="form-group">
-                    <h3>{% if tipo_envio == 'pallet' %}Pallet{% else %}Bulto/Caja{% endif %} {{ i+1 }}</h3>
+                    <h3>${tipo === 'pallet' ? 'Pallet' : 'Bulto/Caja'} ${i + 1}</h3>
                     <label>Pesado</label>
-                    <select name="pesado_{{ i }}" required>
+                    <select name="pesado_${i}" required>
                         <option value="si">Sí</option>
                         <option value="no">No</option>
                     </select>
                     <label>Frágil</label>
-                    <select name="fragil_{{ i }}" required>
+                    <select name="fragil_${i}" required>
                         <option value="si">Sí</option>
                         <option value="no">No</option>
                     </select>
-                    {% if tipo_envio == 'bultos' %}
+            `;
+
+            if (tipo === 'bultos') {
+                html += `
                     <label>Categoría</label>
-                    <select name="categoria_{{ i }}" required>
+                    <select name="categoria_${i}" required>
                         {% for loc in localidades %}
                             {% if loop.first %}
                                 {% for cat in PRECIOS[loc].keys() %}
@@ -145,46 +35,38 @@
                             {% endif %}
                         {% endfor %}
                     </select>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-
-            <!-- Valor Declarado -->
-            <div class="form-group">
-                <label>Valor Declarado</label>
-                <input type="number" step="0.01" name="valor_declarado" required>
-            </div>
-
-            <button type="submit">Calcular</button>
-        </form>
-
-        <!-- Mensajes de Error -->
-        {% if error %}
-        <div class="error">{{ error }}</div>
-        {% endif %}
-
-        <!-- Resultados -->
-        {% if resultado %}
-        <div class="resultado" id="resultado">
-            <h2>Cotización</h2>
-            <p>Base: ${{ resultado.total_base }}</p>
-            <p>Seguro: ${{ resultado.seguro }}</p>
-            <p>IVA: ${{ resultado.iva }}</p>
-            <h3>Total: ${{ resultado.total }}</h3>
-            <button onclick="location.reload()">Nueva Cotización</button>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Script para scroll automático -->
-    <script>
-        window.onload = function() {
-            const resultadoDiv = document.getElementById('resultado');
-            if (resultadoDiv) {
-                resultadoDiv.scrollIntoView({ behavior: 'smooth' });
+                `;
             }
-        };
-    </script>
-</body>
-</html>
+
+            html += '</div>';
+            contenedor.innerHTML += html;
+        }
+    }
+
+    // Eventos
+    document.addEventListener('DOMContentLoaded', () => {
+        const tipoEnvio = document.querySelector('select[name="tipo_envio"]');
+        const cantidad = document.querySelector('input[name="cantidad"]');
+        
+        tipoEnvio.addEventListener('change', () => {
+            generarCampos(cantidad.value, tipoEnvio.value);
+        });
+
+        cantidad.addEventListener('input', () => {
+            generarCampos(cantidad.value, tipoEnvio.value);
+        });
+
+        // Campos iniciales
+        generarCampos(1, tipoEnvio.value);
+    });
+
+    // Nueva Cotización (scroll + reset)
+    function nuevaCotizacion() {
+        document.getElementById('cotizadorForm').reset();
+        generarCampos(1, document.querySelector('select[name="tipo_envio"]').value);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+
+<!-- Botón modificado -->
+<button onclick="nuevaCotizacion()">Nueva Cotización</button>
